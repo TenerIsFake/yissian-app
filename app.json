@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Yissian Translator",
+    "slug": "yissian-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f0f14"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tenerisfake.yissian",
+      "privacyManifests": {
+        "NSPrivacyAccessedAPITypes": []
+      }
+    },
+    "android": {
+      "package": "com.tenerisfake.yissian",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f0f14"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "privacyPolicyUrl": "https://tenerisfake.github.io/privacy.html"
+    }
+  }
+}
