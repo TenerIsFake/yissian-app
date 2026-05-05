@@ -21,6 +21,7 @@
     },
     "android": {
       "package": "com.tenerisfake.yissian",
+      "permissions": [],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0f0f14"

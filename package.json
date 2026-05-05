@@ -20,7 +20,7 @@
     "react-native": "0.81.5",
     "react-native-safe-area-context": "^5.7.0",
     "react-native-screens": "^4.24.0",
-    "yissian-engine": "^1.0.0"
+    "yissian-engine": "^1.0.1"
   },
   "private": true
 }

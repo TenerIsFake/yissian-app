@@ -4,11 +4,39 @@ import {
   StyleSheet, Share, Platform,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { translateToDialect, mergeOverrides } from 'yissian-engine';
 import { useHistory } from '../hooks/useHistory';
 
 const OVERRIDES_URL =
   'https://raw.githubusercontent.com/TenerIsFake/homepage-claude/master/yissian.json';
+const OVERRIDES_CACHE_KEY = 'yissian_overrides_cache';
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+async function loadOverrides() {
+  try {
+    const cached = await AsyncStorage.getItem(OVERRIDES_CACHE_KEY);
+    if (cached) {
+      const { fetchedAt, overrides } = JSON.parse(cached);
+      if (Date.now() - fetchedAt < CACHE_TTL_MS) {
+        mergeOverrides(overrides);
+        return;
+      }
+    }
+    const res = await fetch(OVERRIDES_URL);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && typeof data.overrides === 'object' && !Array.isArray(data.overrides)) {
+      mergeOverrides(data.overrides);
+      await AsyncStorage.setItem(
+        OVERRIDES_CACHE_KEY,
+        JSON.stringify({ fetchedAt: Date.now(), overrides: data.overrides }),
+      );
+    }
+  } catch {
+    // network failure or bad JSON — engine uses bundled defaults
+  }
+}
 
 export default function TranslateScreen() {
   const [input, setInput] = useState('');
@@ -17,12 +45,7 @@ export default function TranslateScreen() {
   const { addEntry } = useHistory();
   const saveTimer = useRef(null);
 
-  useEffect(() => {
-    fetch(OVERRIDES_URL)
-      .then(r => r.json())
-      .then(d => { if (d.overrides) mergeOverrides(d.overrides); })
-      .catch(() => {});
-  }, []);
+  useEffect(() => { loadOverrides(); }, []);
 
   useEffect(() => {
     const result = input ? translateToDialect(input) : '';
