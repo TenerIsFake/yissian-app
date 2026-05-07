@@ -1,13 +1,93 @@
 diff --git a/node_modules/expo-ads-admob/android/build.gradle b/node_modules/expo-ads-admob/android/build.gradle
-index d1f33ca..c38d4c7 100644
+index d1f33ca..11e31a0 100644
 --- a/node_modules/expo-ads-admob/android/build.gradle
 +++ b/node_modules/expo-ads-admob/android/build.gradle
-@@ -37,7 +37,7 @@ buildscript {
+@@ -1,6 +1,5 @@
+ apply plugin: 'com.android.library'
+ apply plugin: 'kotlin-android'
+-apply plugin: 'maven-publish'
  
- // Creating sources with comments
- task androidSourcesJar(type: Jar) {
--  classifier = 'sources'
-+  archiveClassifier = 'sources'
-   from android.sourceSets.main.java.srcDirs
+ group = 'host.exp.exponent'
+ version = '13.0.0'
+@@ -12,12 +11,10 @@ buildscript {
+     applyKotlinExpoModulesCorePlugin()
+   }
+ 
+-  // Simple helper that allows the root project to override versions declared by this library.
+   ext.safeExtGet = { prop, fallback ->
+     rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+   }
+ 
+-  // Ensures backward compatibility
+   ext.getKotlinVersion = {
+     if (ext.has("kotlinVersion")) {
+       ext.kotlinVersion()
+@@ -35,31 +32,8 @@ buildscript {
+   }
  }
  
+-// Creating sources with comments
+-task androidSourcesJar(type: Jar) {
+-  classifier = 'sources'
+-  from android.sourceSets.main.java.srcDirs
+-}
+-
+-afterEvaluate {
+-  publishing {
+-    publications {
+-      release(MavenPublication) {
+-        from components.release
+-        // Add additional sourcesJar to artifacts
+-        artifact(androidSourcesJar)
+-      }
+-    }
+-    repositories {
+-      maven {
+-        url = mavenLocal().url
+-      }
+-    }
+-  }
+-}
+-
+ android {
+-  compileSdkVersion safeExtGet("compileSdkVersion", 31)
++  compileSdkVersion safeExtGet("compileSdkVersion", 34)
+ 
+   compileOptions {
+     sourceCompatibility JavaVersion.VERSION_11
+@@ -71,11 +45,12 @@ android {
+   }
+ 
+   defaultConfig {
+-    minSdkVersion safeExtGet("minSdkVersion", 21)
+-    targetSdkVersion safeExtGet("targetSdkVersion", 31)
++    minSdkVersion safeExtGet("minSdkVersion", 23)
++    targetSdkVersion safeExtGet("targetSdkVersion", 34)
+     versionCode 26
+     versionName "13.0.0"
+   }
++
+   lintOptions {
+     abortOnError false
+   }
+@@ -83,17 +58,11 @@ android {
+ 
+ dependencies {
+   implementation project(':expo-modules-core')
+-  implementation 'com.google.android.gms:play-services-ads:20.5.0'
+-  // For apps targeting Android 12, add WorkManager dependency.
+-  // See more at https://developers.google.com/admob/android/rel-notes
++  implementation 'com.google.android.gms:play-services-ads:23.0.0'
+   constraints {
+-    implementation('androidx.work:work-runtime:2.7.0') {
+-      because '''androidx.work:work-runtime:2.1.0 pulled from
+-      play-services-ads has a bug using PendingIntent without
+-      FLAG_IMMUTABLE or FLAG_MUTABLE and will fail in Apps
+-      targeting S+.'''
++    implementation('androidx.work:work-runtime:2.8.1') {
++      because 'play-services-ads pulls an older version with PendingIntent FLAG_IMMUTABLE bug'
+     }
+   }
+-
+   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${getKotlinVersion()}"
+ }
