@@ -1,26 +1,20 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
-import { AdMobBanner, setTestDeviceIDAsync } from 'expo-ads-admob';
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 
 const REAL_BANNER_ID = 'ca-app-pub-9760203099492988/9979822598';
-const TEST_BANNER_ID = 'ca-app-pub-3940256099942544/6300978111';
-
-const BANNER_ID = __DEV__ ? TEST_BANNER_ID : REAL_BANNER_ID;
+const BANNER_ID = __DEV__ ? TestIds.BANNER : REAL_BANNER_ID;
 
 export default function BannerAdBar() {
-  useEffect(() => {
-    if (__DEV__) setTestDeviceIDAsync('EMULATOR');
-  }, []);
-
   if (Platform.OS !== 'android') return null;
 
   return (
     <View style={styles.container}>
-      <AdMobBanner
-        bannerSize="smartBannerPortrait"
-        adUnitID={BANNER_ID}
-        servePersonalizedAds={false}
-        onDidFailToReceiveAdWithError={err => console.warn('AdMob:', err)}
+      <BannerAd
+        unitId={BANNER_ID}
+        size={BannerAdSize.BANNER}
+        requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+        onAdFailedToLoad={err => console.warn('AdMob:', err)}
       />
     </View>
   );

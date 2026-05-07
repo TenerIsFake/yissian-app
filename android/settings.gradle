@@ -38,15 +38,3 @@ expoAutolinking.useExpoVersionCatalog()
 include ':app'
 includeBuild(expoAutolinking.reactNativeGradlePlugin)
 
-// Patch expo-ads-admob@13 build.gradle before Gradle evaluates it.
-// The original file uses `classifier = 'sources'` and an afterEvaluate/maven-publish
-// block that are incompatible with Gradle 8. We replace the file with a fixed copy
-// stored at android/adMobFix.gradle.
-gradle.beforeProject { project ->
-  if (project.name == 'expo-ads-admob') {
-    def fixedFile = new File(settings.rootDir, 'adMobFix.gradle')
-    if (fixedFile.exists() && project.buildFile.exists()) {
-      project.buildFile.text = fixedFile.text
-    }
-  }
-}
