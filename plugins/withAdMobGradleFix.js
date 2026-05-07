@@ -1,12 +1,13 @@
-const { withDangerousMod } = require('@expo/config-plugins');
+const { withDangerousMod, withAndroidManifest } = require('@expo/config-plugins');
+const { addMetaDataItemToMainApplication, getMainApplicationOrThrow } = require('@expo/config-plugins').AndroidConfig.Manifest;
 const fs = require('fs');
 const path = require('path');
 
-// expo-ads-admob@13 build.gradle has two Gradle 8 incompatibilities:
-//   1. `classifier = 'sources'` (removed in Gradle 8; use archiveClassifier)
-//   2. `afterEvaluate { publishing { from components.release } }` — AGP finalizes
-//      components before afterEvaluate runs in Gradle 8, causing a build error.
-// We replace the entire file with a Gradle 8-compatible version.
+const ADMOB_APP_ID_KEY = 'com.google.android.gms.ads.APPLICATION_ID';
+const ADMOB_DELAY_INIT_KEY = 'com.google.android.gms.ads.DELAY_APP_MEASUREMENT_INIT';
+
+// Gradle 8-compatible replacement for expo-ads-admob@13's build.gradle.
+// Removes the maven-publish/afterEvaluate block that breaks Gradle 8.
 const FIXED_BUILD_GRADLE = `apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
@@ -77,7 +78,7 @@ dependencies {
 }
 `;
 
-module.exports = function withAdMobGradleFix(config) {
+function withFixedBuildGradle(config) {
   return withDangerousMod(config, [
     'android',
     async (config) => {
@@ -94,4 +95,21 @@ module.exports = function withAdMobGradleFix(config) {
       return config;
     },
   ]);
+}
+
+function withAdMobManifest(config) {
+  return withAndroidManifest(config, (config) => {
+    const appId = config.android?.config?.googleMobileAdsAppId ?? null;
+    if (!appId) return config;
+    const mainApp = getMainApplicationOrThrow(config.modResults);
+    addMetaDataItemToMainApplication(mainApp, ADMOB_APP_ID_KEY, appId);
+    addMetaDataItemToMainApplication(mainApp, ADMOB_DELAY_INIT_KEY, 'true');
+    return config;
+  });
+}
+
+module.exports = function withAdMobGradleFix(config) {
+  config = withFixedBuildGradle(config);
+  config = withAdMobManifest(config);
+  return config;
 };
