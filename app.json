@@ -22,7 +22,9 @@
     "android": {
       "package": "com.tenerisfake.yissian",
       "permissions": [],
-      "googleServicesFile": "./google-services.json",
+      "config": {
+        "googleMobileAdsAppId": "ca-app-pub-9760203099492988~3292564703"
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0f0f14"
@@ -38,15 +40,6 @@
         "projectId": "9b7f0617-3814-4840-b44e-e3fa1d6b0261"
       }
     },
-    "plugins": [
-      [
-        "react-native-google-mobile-ads",
-        {
-          "androidAppId": "ca-app-pub-9760203099492988~3292564703",
-          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
-          "delayAppMeasurementInit": true
-        }
-      ]
-    ]
+    "plugins": []
   }
 }
