@@ -1,30 +1,23 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
-import { AdMobBanner, setTestDeviceIDAsync } from 'expo-ads-admob';
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 
-// ── Ad unit IDs ───────────────────────────────────────────────────────────────
-// Replace REAL_* values after creating ad units in AdMob console.
-// App ID goes in app.json → android.config.googleMobileAdsAppId
-const REAL_BANNER_UNIT_ID = 'YOUR_REAL_BANNER_UNIT_ID';
-const TEST_BANNER_UNIT_ID = 'ca-app-pub-3940256099942544/6300978111';
+// Replace with real unit ID after creating a Banner ad unit in AdMob console.
+// App ID is in app.json → plugins[react-native-google-mobile-ads].androidAppId
+const REAL_BANNER_ID = 'YOUR_REAL_BANNER_UNIT_ID';
+const BANNER_ID = __DEV__ ? TestIds.BANNER : REAL_BANNER_ID;
 
-const BANNER_ID = __DEV__ ? TEST_BANNER_UNIT_ID : REAL_BANNER_UNIT_ID;
-
-export default function BannerAd() {
-  useEffect(() => {
-    if (__DEV__) setTestDeviceIDAsync('EMULATOR');
-  }, []);
-
-  // iOS not wired yet — no iOS AdMob app registered
+export default function BannerAdBar() {
+  // iOS not registered in AdMob yet — skip until iOS App ID is obtained
   if (Platform.OS !== 'android') return null;
 
   return (
     <View style={styles.container}>
-      <AdMobBanner
-        bannerSize="banner"
-        adUnitID={BANNER_ID}
-        servePersonalizedAds={false}
-        onDidFailToReceiveAdWithError={err => console.warn('AdMob:', err)}
+      <BannerAd
+        unitId={BANNER_ID}
+        size={BannerAdSize.BANNER}
+        requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+        onAdFailedToLoad={err => console.warn('AdMob load error:', err.message)}
       />
     </View>
   );

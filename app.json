@@ -27,9 +27,6 @@
         "backgroundColor": "#0f0f14"
       },
       "edgeToEdgeEnabled": true,
-      "config": {
-        "googleMobileAdsAppId": "ca-app-pub-3940256099942544~3347511713"
-      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -39,6 +36,14 @@
       "eas": {
         "projectId": "9b7f0617-3814-4840-b44e-e3fa1d6b0261"
       }
-    }
+    },
+    "plugins": [
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713"
+        }
+      ]
+    ]
   }
 }
