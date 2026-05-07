@@ -2,11 +2,81 @@ const { withDangerousMod } = require('@expo/config-plugins');
 const fs = require('fs');
 const path = require('path');
 
-// expo-ads-admob@13 has two Gradle 8 incompatibilities:
-//   1. `classifier = 'sources'` was removed — replace with archiveClassifier
-//   2. `afterEvaluate { publishing { from components.release } }` fails in Gradle 8
-//      because AGP finalizes components before afterEvaluate runs.
-// We strip the publishing block entirely — consumer apps don't need Maven publishing.
+// expo-ads-admob@13 build.gradle has two Gradle 8 incompatibilities:
+//   1. `classifier = 'sources'` (removed in Gradle 8; use archiveClassifier)
+//   2. `afterEvaluate { publishing { from components.release } }` — AGP finalizes
+//      components before afterEvaluate runs in Gradle 8, causing a build error.
+// We replace the entire file with a Gradle 8-compatible version.
+const FIXED_BUILD_GRADLE = `apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+group = 'host.exp.exponent'
+version = '13.0.0'
+
+buildscript {
+  def expoModulesCorePlugin = new File(project(":expo-modules-core").projectDir.absolutePath, "ExpoModulesCorePlugin.gradle")
+  if (expoModulesCorePlugin.exists()) {
+    apply from: expoModulesCorePlugin
+    applyKotlinExpoModulesCorePlugin()
+  }
+
+  ext.safeExtGet = { prop, fallback ->
+    rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+  }
+
+  ext.getKotlinVersion = {
+    if (ext.has("kotlinVersion")) {
+      ext.kotlinVersion()
+    } else {
+      ext.safeExtGet("kotlinVersion", "1.6.10")
+    }
+  }
+
+  repositories {
+    mavenCentral()
+  }
+
+  dependencies {
+    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:\${getKotlinVersion()}")
+  }
+}
+
+android {
+  compileSdkVersion safeExtGet("compileSdkVersion", 34)
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_11
+    targetCompatibility JavaVersion.VERSION_11
+  }
+
+  kotlinOptions {
+    jvmTarget = JavaVersion.VERSION_11.majorVersion
+  }
+
+  defaultConfig {
+    minSdkVersion safeExtGet("minSdkVersion", 23)
+    targetSdkVersion safeExtGet("targetSdkVersion", 34)
+    versionCode 26
+    versionName "13.0.0"
+  }
+
+  lintOptions {
+    abortOnError false
+  }
+}
+
+dependencies {
+  implementation project(':expo-modules-core')
+  implementation 'com.google.android.gms:play-services-ads:23.0.0'
+  constraints {
+    implementation('androidx.work:work-runtime:2.8.1') {
+      because 'play-services-ads pulls an older version with PendingIntent FLAG_IMMUTABLE bug'
+    }
+  }
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:\${getKotlinVersion()}"
+}
+`;
+
 module.exports = function withAdMobGradleFix(config) {
   return withDangerousMod(config, [
     'android',
@@ -18,19 +88,9 @@ module.exports = function withAdMobGradleFix(config) {
         'android',
         'build.gradle'
       );
-      if (!fs.existsSync(buildGradle)) return config;
-
-      let src = fs.readFileSync(buildGradle, 'utf8');
-
-      // Fix 1: deprecated Jar.classifier property
-      src = src.replace(/\bclassifier\s*=\s*'sources'/g, "archiveClassifier = 'sources'");
-
-      // Fix 2: remove the androidSourcesJar task and the afterEvaluate/publishing block
-      // which break under Gradle 8 (components.release unavailable in afterEvaluate)
-      src = src.replace(/\/\/ Creating sources with comments[\s\S]*?^}/m, '');
-      src = src.replace(/afterEvaluate\s*\{[\s\S]*?^}/m, '');
-
-      fs.writeFileSync(buildGradle, src);
+      if (fs.existsSync(buildGradle)) {
+        fs.writeFileSync(buildGradle, FIXED_BUILD_GRADLE, 'utf8');
+      }
       return config;
     },
   ]);
