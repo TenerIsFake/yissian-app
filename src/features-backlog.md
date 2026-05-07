@@ -66,6 +66,49 @@ Small — in-memory filter with useMemo, no new deps.
 
 ---
 
+### [ ] Pending — Web URL Translator (Phase 2 — CF Worker)
+
+**One-line summary:** A Cloudflare Worker proxies arbitrary URLs, strips navigation/scripts, and returns plain HTML blocks for the browser to translate client-side.
+
+### Problem
+Browsers block `fetch()` to third-party domains (CORS). The mobile app works around this via a React Native networking layer; the web app runs in a sandboxed origin and cannot fetch `https://en.wikipedia.org/...` directly.
+
+### Solution
+A Cloudflare Worker at `https://proxy.yissian.tendrid.us/fetch?url=<encoded>`:
+1. Receives the target URL as a query param
+2. Fetches it server-side (no CORS restriction at Worker level)
+3. Strips `<head>/<script>/<style>/<nav>/<footer>/<header>`
+4. Returns JSON: `{ blocks: [{ tag, text }] }` where blocks are extracted `<h1–h3|p|li|blockquote|td|th>` elements
+5. Browser receives clean block list and translates each block client-side
+
+### Acceptance Criteria
+- [ ] Worker deployed at `proxy.yissian.tendrid.us` (new CF Worker + custom domain route)
+- [ ] Worker validates URL (must be http/https, no internal IPs)
+- [ ] Worker sets `Access-Control-Allow-Origin: https://yissian-web.pages.dev` (or `*` for dev)
+- [ ] Web app adds "Web" tab with URL input bar
+- [ ] Successful fetch: renders tap-to-toggle blocks (original ↔ translated), matching mobile UX
+- [ ] Empty-state (0 blocks): "No readable content — try Wikipedia or a news article"
+- [ ] HTTP errors: red error card with status + tappable URL
+- [ ] Permanent hint under URL bar (matches mobile)
+
+### Files to Touch
+| File | Change |
+|---|---|
+| New: `worker/index.js` (in yissian-web repo) | CF Worker source — fetch, strip, extract, return JSON |
+| New: `wrangler.toml` | Worker name, route, compatibility date |
+| `src/WebTranslate.jsx` | New page: URL bar → Worker call → block render |
+| `src/App.jsx` | Add "Web" tab to NAV; pass dialect to WebTranslate |
+| `src/App.css` | WebTranslate styles (reuse existing card patterns) |
+
+### Effort Estimate
+Medium — Worker is ~50 lines; web component mirrors mobile implementation; custom domain setup is 1 CF step.
+
+### Open Questions
+- Should the Worker allowlist only known safe domains (Wikipedia, BBC…), or allow any URL with IP/localhost blocked?
+- Rate-limiting strategy: CF free tier Workers are 100K req/day — acceptable for now, add KV-based throttle in Phase 3?
+
+---
+
 ### [ ] Pending — Android SDK Homepage Widget (SRV-2)
 
 **One-line summary:** SRV-2 exposes Android SDK health as a JSON endpoint; SRV-1 homepage shows a widget card.
