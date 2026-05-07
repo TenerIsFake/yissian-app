@@ -58,10 +58,13 @@ android {
 
 dependencies {
   implementation project(':expo-modules-core')
-  implementation 'com.google.android.gms:play-services-ads:23.0.0'
+  implementation 'com.google.android.gms:play-services-ads:20.5.0'
   constraints {
-    implementation('androidx.work:work-runtime:2.8.1') {
-      because 'play-services-ads pulls an older version with PendingIntent FLAG_IMMUTABLE bug'
+    implementation('androidx.work:work-runtime:2.7.0') {
+      because '''androidx.work:work-runtime:2.1.0 pulled from
+      play-services-ads has a bug using PendingIntent without
+      FLAG_IMMUTABLE or FLAG_MUTABLE and will fail in Apps
+      targeting S+.'''
     }
   }
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${getKotlinVersion()}"
