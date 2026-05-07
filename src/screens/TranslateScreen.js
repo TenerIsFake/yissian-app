@@ -12,7 +12,7 @@ import BannerAd from '../components/BannerAd';
 const OVERRIDES_URL =
   'https://raw.githubusercontent.com/TenerIsFake/homepage-claude/master/yissian.json';
 const OVERRIDES_CACHE_KEY = 'yissian_overrides_cache';
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 async function loadOverrides() {
   try {
@@ -39,9 +39,60 @@ async function loadOverrides() {
   }
 }
 
+// ── Intensity ──────────────────────────────────────────────────────────────
+
+const INTENSITY_STEPS = [0, 25, 50, 75, 100];
+
+// At 25/50/75%, translate every Nth word using modular index:
+// level 1 → every 4th, level 2 → half, level 3 → 3 out of 4
+function translateWithIntensity(text, intensity) {
+  if (intensity === 100) return translateToDialect(text);
+  if (intensity === 0) return text;
+  const level = INTENSITY_STEPS.indexOf(intensity);
+  return text
+    .split(' ')
+    .map((word, i) => ((i % 4) < level ? translateToDialect(word) : word))
+    .join(' ');
+}
+
+// ── Word chip tooltip ──────────────────────────────────────────────────────
+
+function WordChips({ inputText, outputText }) {
+  const [active, setActive] = useState(null);
+  const inputWords = inputText.split(' ');
+  const outputWords = outputText.split(' ');
+
+  return (
+    <View style={styles.chips}>
+      {outputWords.map((word, i) => {
+        const isActive = active === i;
+        const original = inputWords[i];
+        const changed = original && original.toLowerCase() !== word.toLowerCase();
+        return (
+          <TouchableOpacity
+            key={i}
+            style={[styles.chip, isActive && styles.chipActive]}
+            onPress={() => setActive(isActive ? null : i)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.chipText}>{word}</Text>
+            {isActive && changed && (
+              <Text style={styles.tooltipLabel}>{original}</Text>
+            )}
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+// ── Screen ─────────────────────────────────────────────────────────────────
+
 export default function TranslateScreen() {
   const [input, setInput] = useState('');
   const [output, setOutput] = useState('');
+  const [intensity, setIntensity] = useState(100);
+  const [tooltipMode, setTooltipMode] = useState(false);
   const [copied, setCopied] = useState(false);
   const { addEntry } = useHistory();
   const saveTimer = useRef(null);
@@ -49,7 +100,7 @@ export default function TranslateScreen() {
   useEffect(() => { loadOverrides(); }, []);
 
   useEffect(() => {
-    const result = input ? translateToDialect(input) : '';
+    const result = input ? translateWithIntensity(input, intensity) : '';
     setOutput(result);
 
     clearTimeout(saveTimer.current);
@@ -57,7 +108,7 @@ export default function TranslateScreen() {
       saveTimer.current = setTimeout(() => addEntry(input, result), 800);
     }
     return () => clearTimeout(saveTimer.current);
-  }, [input, addEntry]);
+  }, [input, intensity, addEntry]);
 
   const handleCopy = async () => {
     if (!output) return;
@@ -68,7 +119,8 @@ export default function TranslateScreen() {
 
   const handleShare = async () => {
     if (!output) return;
-    await Share.share({ message: output });
+    const card = `✨ Yissian Translator\n\n"${input}"\n  ↓\n"${output}"\n\nyissian-app`;
+    await Share.share({ message: card });
   };
 
   const handleClear = () => {
@@ -91,11 +143,44 @@ export default function TranslateScreen() {
           autoCapitalize="none"
         />
 
-        <Text style={styles.label}>Yissian</Text>
+        {/* Intensity selector */}
+        <View style={styles.intensityRow}>
+          <Text style={styles.intensityLabel}>Intensity</Text>
+          <View style={styles.intensityBtns}>
+            {INTENSITY_STEPS.map(step => (
+              <TouchableOpacity
+                key={step}
+                style={[styles.intensityBtn, intensity === step && styles.intensityBtnActive]}
+                onPress={() => setIntensity(step)}
+              >
+                <Text style={[styles.intensityBtnText, intensity === step && styles.intensityBtnTextActive]}>
+                  {step}%
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Output header row with tooltip mode toggle */}
+        <View style={styles.outputHeader}>
+          <Text style={styles.label}>Yissian</Text>
+          <TouchableOpacity
+            style={[styles.modeBtn, tooltipMode && styles.modeBtnActive]}
+            onPress={() => setTooltipMode(m => !m)}
+            disabled={!output}
+          >
+            <Text style={styles.modeBtnText}>📝 Words</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.outputBox}>
-          <Text style={styles.outputText} selectable>
-            {output || <Text style={styles.placeholder}>Translation appears here</Text>}
-          </Text>
+          {tooltipMode && output ? (
+            <WordChips inputText={input} outputText={output} />
+          ) : (
+            <Text style={styles.outputText} selectable>
+              {output || <Text style={styles.placeholder}>Translation appears here</Text>}
+            </Text>
+          )}
         </View>
 
         <View style={styles.actions}>
@@ -118,19 +203,55 @@ export default function TranslateScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#0f0f14' },
   container: { padding: 20, flexGrow: 1, backgroundColor: '#0f0f14' },
-  label: { color: '#a78bfa', fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-    fontSize: 11, letterSpacing: 3, marginBottom: 6, textTransform: 'uppercase' },
+  label: {
+    color: '#a78bfa', fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 11, letterSpacing: 3, marginBottom: 6, textTransform: 'uppercase',
+  },
   input: {
     backgroundColor: '#1a1a2e', color: '#e2e8f0', borderRadius: 10,
     padding: 14, fontSize: 16, minHeight: 120, textAlignVertical: 'top',
-    borderWidth: 1, borderColor: '#2d2d44', marginBottom: 20,
+    borderWidth: 1, borderColor: '#2d2d44', marginBottom: 16,
   },
+  // Intensity
+  intensityRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, gap: 10 },
+  intensityLabel: {
+    color: '#a78bfa', fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 11, letterSpacing: 3, textTransform: 'uppercase',
+  },
+  intensityBtns: { flex: 1, flexDirection: 'row', gap: 6 },
+  intensityBtn: {
+    flex: 1, borderRadius: 6, paddingVertical: 6,
+    alignItems: 'center', backgroundColor: '#1a1a2e',
+    borderWidth: 1, borderColor: '#2d2d44',
+  },
+  intensityBtnActive: { backgroundColor: '#5b21b6', borderColor: '#7c3aed' },
+  intensityBtnText: { color: '#64748b', fontSize: 12, fontWeight: '600' },
+  intensityBtnTextActive: { color: '#fff' },
+  // Output header
+  outputHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  modeBtn: {
+    borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4,
+    backgroundColor: '#1a1a2e', borderWidth: 1, borderColor: '#2d2d44',
+  },
+  modeBtnActive: { backgroundColor: '#3b1f6e', borderColor: '#7c3aed' },
+  modeBtnText: { color: '#a78bfa', fontSize: 12 },
+  // Output box
   outputBox: {
     backgroundColor: '#1a1a2e', borderRadius: 10, padding: 14,
     minHeight: 120, borderWidth: 1, borderColor: '#3d2d64', marginBottom: 24,
   },
   outputText: { color: '#c4b5fd', fontSize: 16, lineHeight: 24 },
   placeholder: { color: '#444' },
+  // Word chips
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  chip: {
+    backgroundColor: '#2d1f52', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 6,
+    borderWidth: 1, borderColor: '#4c3480', alignItems: 'center',
+  },
+  chipActive: { backgroundColor: '#5b21b6', borderColor: '#a78bfa' },
+  chipText: { color: '#c4b5fd', fontSize: 15 },
+  tooltipLabel: { color: '#94a3b8', fontSize: 11, marginTop: 3 },
+  // Actions
   actions: { flexDirection: 'row', gap: 10 },
   btn: {
     flex: 1, backgroundColor: '#5b21b6', borderRadius: 8,

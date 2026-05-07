@@ -13,12 +13,22 @@ export function useHistory() {
     });
   }, []);
 
+  const save = (next) => AsyncStorage.setItem(KEY, JSON.stringify(next));
+
   const addEntry = useCallback(async (input, output) => {
     if (!input.trim() || !output.trim() || input === output) return;
     setHistory(prev => {
-      const entry = { id: Date.now(), input, output, at: new Date().toISOString() };
+      const entry = { id: Date.now(), input, output, at: new Date().toISOString(), starred: false };
       const next = [entry, ...prev.filter(e => e.input !== input)].slice(0, MAX);
-      AsyncStorage.setItem(KEY, JSON.stringify(next));
+      save(next);
+      return next;
+    });
+  }, []);
+
+  const toggleStar = useCallback((id) => {
+    setHistory(prev => {
+      const next = prev.map(e => e.id === id ? { ...e, starred: !e.starred } : e);
+      save(next);
       return next;
     });
   }, []);
@@ -28,5 +38,11 @@ export function useHistory() {
     setHistory([]);
   }, []);
 
-  return { history, addEntry, clearHistory };
+  // starred items float to the top, preserving recency order within each group
+  const sorted = [
+    ...history.filter(e => e.starred),
+    ...history.filter(e => !e.starred),
+  ];
+
+  return { history: sorted, addEntry, toggleStar, clearHistory };
 }

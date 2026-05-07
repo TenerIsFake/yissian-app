@@ -7,10 +7,12 @@ import { Text } from 'react-native';
 import TranslateScreen from './src/screens/TranslateScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
 import RulesScreen from './src/screens/RulesScreen';
+import PhrasesScreen from './src/screens/PhrasesScreen';
+import WebTranslateScreen from './src/screens/WebTranslateScreen';
 
 const Tab = createBottomTabNavigator();
 
-const ICONS = { Translate: '🗣', History: '📜', Rules: '📖' };
+const ICONS = { Translate: '🗣', History: '📜', Phrases: '💬', Web: '🌐', Rules: '📖' };
 
 export default function App() {
   return (
@@ -33,6 +35,8 @@ export default function App() {
       >
         <Tab.Screen name="Translate" component={TranslateScreen} />
         <Tab.Screen name="History" component={HistoryScreen} />
+        <Tab.Screen name="Phrases" component={PhrasesScreen} />
+        <Tab.Screen name="Web" component={WebTranslateScreen} />
         <Tab.Screen name="Rules" component={RulesScreen} />
       </Tab.Navigator>
     </NavigationContainer>

@@ -5,7 +5,7 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import { useHistory } from '../hooks/useHistory';
 
-function HistoryItem({ item }) {
+function HistoryItem({ item, onStar }) {
   const handleCopy = async () => {
     await Clipboard.setStringAsync(item.output);
   };
@@ -15,7 +15,14 @@ function HistoryItem({ item }) {
   });
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handleCopy} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={[styles.card, item.starred && styles.cardStarred]}
+      onPress={handleCopy}
+      activeOpacity={0.7}
+    >
+      <TouchableOpacity style={styles.starBtn} onPress={() => onStar(item.id)} hitSlop={8}>
+        <Text style={styles.starIcon}>{item.starred ? '⭐' : '☆'}</Text>
+      </TouchableOpacity>
       <Text style={styles.inputText} numberOfLines={2}>{item.input}</Text>
       <Text style={styles.arrow}>↓</Text>
       <Text style={styles.outputText} numberOfLines={2}>{item.output}</Text>
@@ -25,7 +32,7 @@ function HistoryItem({ item }) {
 }
 
 export default function HistoryScreen() {
-  const { history, clearHistory } = useHistory();
+  const { history, toggleStar, clearHistory } = useHistory();
 
   const confirmClear = () => {
     Alert.alert('Clear history?', 'This cannot be undone.', [
@@ -48,7 +55,7 @@ export default function HistoryScreen() {
       <FlatList
         data={history}
         keyExtractor={item => String(item.id)}
-        renderItem={({ item }) => <HistoryItem item={item} />}
+        renderItem={({ item }) => <HistoryItem item={item} onStar={toggleStar} />}
         contentContainerStyle={styles.list}
         ListFooterComponent={
           <TouchableOpacity style={styles.clearBtn} onPress={confirmClear}>
@@ -67,7 +74,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a2e', borderRadius: 10, padding: 14,
     borderWidth: 1, borderColor: '#2d2d44',
   },
-  inputText: { color: '#94a3b8', fontSize: 14, marginBottom: 4 },
+  cardStarred: { borderColor: '#7c3aed', backgroundColor: '#1e1a35' },
+  starBtn: { position: 'absolute', top: 10, right: 12 },
+  starIcon: { fontSize: 18 },
+  inputText: { color: '#94a3b8', fontSize: 14, marginBottom: 4, paddingRight: 28 },
   arrow: { color: '#a78bfa', marginVertical: 2 },
   outputText: { color: '#c4b5fd', fontSize: 15, fontWeight: '500', marginBottom: 6 },
   date: { color: '#4b5563', fontSize: 11, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
