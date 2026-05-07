@@ -40,6 +40,6 @@
         "projectId": "9b7f0617-3814-4840-b44e-e3fa1d6b0261"
       }
     },
-    "plugins": []
+    "plugins": ["expo-ads-admob"]
   }
 }
