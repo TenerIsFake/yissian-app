@@ -1,13 +1,9 @@
-const { withDangerousMod, withAndroidManifest } = require('@expo/config-plugins');
-const { addMetaDataItemToMainApplication, getMainApplicationOrThrow } = require('@expo/config-plugins').AndroidConfig.Manifest;
+const { withDangerousMod } = require('@expo/config-plugins');
 const fs = require('fs');
 const path = require('path');
 
-const ADMOB_APP_ID_KEY = 'com.google.android.gms.ads.APPLICATION_ID';
-const ADMOB_DELAY_INIT_KEY = 'com.google.android.gms.ads.DELAY_APP_MEASUREMENT_INIT';
+const ADMOB_APP_ID = 'ca-app-pub-9760203099492988~3292564703';
 
-// Gradle 8-compatible replacement for expo-ads-admob@13's build.gradle.
-// Removes the maven-publish/afterEvaluate block that breaks Gradle 8.
 const FIXED_BUILD_GRADLE = `apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
@@ -78,16 +74,17 @@ dependencies {
 }
 `;
 
-function withFixedBuildGradle(config) {
-  return withDangerousMod(config, [
+const META_DATA_XML = `    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="${ADMOB_APP_ID}"/>
+    <meta-data android:name="com.google.android.gms.ads.DELAY_APP_MEASUREMENT_INIT" android:value="true"/>`;
+
+module.exports = function withAdMobGradleFix(config) {
+  // Pass 1: rewrite expo-ads-admob build.gradle (runs in node_modules, pre-Gradle)
+  config = withDangerousMod(config, [
     'android',
-    async (config) => {
+    (config) => {
       const buildGradle = path.join(
         config.modRequest.projectRoot,
-        'node_modules',
-        'expo-ads-admob',
-        'android',
-        'build.gradle'
+        'node_modules', 'expo-ads-admob', 'android', 'build.gradle'
       );
       if (fs.existsSync(buildGradle)) {
         fs.writeFileSync(buildGradle, FIXED_BUILD_GRADLE, 'utf8');
@@ -95,21 +92,25 @@ function withFixedBuildGradle(config) {
       return config;
     },
   ]);
-}
 
-function withAdMobManifest(config) {
-  return withAndroidManifest(config, (config) => {
-    const appId = config.android?.config?.googleMobileAdsAppId ?? null;
-    if (!appId) return config;
-    const mainApp = getMainApplicationOrThrow(config.modResults);
-    addMetaDataItemToMainApplication(mainApp, ADMOB_APP_ID_KEY, appId);
-    addMetaDataItemToMainApplication(mainApp, ADMOB_DELAY_INIT_KEY, 'true');
-    return config;
-  });
-}
+  // Pass 2: inject AdMob APPLICATION_ID into the generated AndroidManifest.xml
+  config = withDangerousMod(config, [
+    'android',
+    (config) => {
+      const manifestPath = path.join(
+        config.modRequest.platformProjectRoot,
+        'app', 'src', 'main', 'AndroidManifest.xml'
+      );
+      if (fs.existsSync(manifestPath)) {
+        let manifest = fs.readFileSync(manifestPath, 'utf8');
+        if (!manifest.includes('gms.ads.APPLICATION_ID')) {
+          manifest = manifest.replace('</application>', META_DATA_XML + '\n  </application>');
+          fs.writeFileSync(manifestPath, manifest, 'utf8');
+        }
+      }
+      return config;
+    },
+  ]);
 
-module.exports = function withAdMobGradleFix(config) {
-  config = withFixedBuildGradle(config);
-  config = withAdMobManifest(config);
   return config;
 };
