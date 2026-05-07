@@ -22,11 +22,12 @@
     "android": {
       "package": "com.tenerisfake.yissian",
       "permissions": [],
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0f0f14"
       },
-      "edgeToEdgeEnabled": true,
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -42,7 +43,8 @@
         "react-native-google-mobile-ads",
         {
           "android_app_id": "ca-app-pub-3940256099942544~3347511713",
-          "ios_app_id": "ca-app-pub-3940256099942544~1458002511"
+          "ios_app_id": "ca-app-pub-3940256099942544~1458002511",
+          "delay_app_measurement_init": true
         }
       ]
     ]
