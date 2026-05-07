@@ -4,7 +4,7 @@ import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads'
 
 // Replace with real unit ID after creating a Banner ad unit in AdMob console.
 // App ID is in app.json → plugins[react-native-google-mobile-ads].androidAppId
-const REAL_BANNER_ID = 'YOUR_REAL_BANNER_UNIT_ID';
+const REAL_BANNER_ID = 'ca-app-pub-9760203099492988/9979822598';
 const BANNER_ID = __DEV__ ? TestIds.BANNER : REAL_BANNER_ID;
 
 export default function BannerAdBar() {

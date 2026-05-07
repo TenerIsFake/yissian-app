@@ -9,7 +9,8 @@
       "client_info": {
         "mobilesdk_app_id": "1:000000000000:android:0000000000000000ffffffff",
         "android_client_info": {
-          "package_name": "com.tenerisfake.yissian"
+          "package_name": "com.tenerisfake.yissian",
+          "admob_app_id": "ca-app-pub-9760203099492988~3292564703"
         }
       },
       "oauth_client": [],
