@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View, TextInput, Text, TouchableOpacity, ScrollView,
   StyleSheet, Share, Platform,
@@ -42,6 +42,7 @@ async function loadOverrides() {
 // ── Intensity ──────────────────────────────────────────────────────────────
 
 const INTENSITY_STEPS = [0, 25, 50, 75, 100];
+const INTENSITY_LABELS = ['Off', 'Light', 'Half', 'Most', 'Full'];
 
 // At 25/50/75%, translate every Nth word using modular index:
 // level 1 → every 4th, level 2 → half, level 3 → 3 out of 4
@@ -128,6 +129,16 @@ export default function TranslateScreen() {
     setOutput('');
   };
 
+  const wordCountBadge = useMemo(() => {
+    const level = INTENSITY_STEPS.indexOf(intensity);
+    if (level <= 0 || level >= INTENSITY_STEPS.length - 1) return null;
+    const words = input.trim() ? input.trim().split(/\s+/) : [];
+    const total = words.length;
+    if (total === 0) return null;
+    const translated = words.filter((_, i) => (i % 4) < level).length;
+    return `~${translated} of ${total} words translated`;
+  }, [input, intensity]);
+
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
@@ -147,19 +158,22 @@ export default function TranslateScreen() {
         <View style={styles.intensityRow}>
           <Text style={styles.intensityLabel}>Intensity</Text>
           <View style={styles.intensityBtns}>
-            {INTENSITY_STEPS.map(step => (
+            {INTENSITY_STEPS.map((step, idx) => (
               <TouchableOpacity
                 key={step}
                 style={[styles.intensityBtn, intensity === step && styles.intensityBtnActive]}
                 onPress={() => setIntensity(step)}
               >
                 <Text style={[styles.intensityBtnText, intensity === step && styles.intensityBtnTextActive]}>
-                  {step}%
+                  {INTENSITY_LABELS[idx]}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
+        {wordCountBadge && (
+          <Text style={styles.wordCountBadge}>{wordCountBadge}</Text>
+        )}
 
         {/* Output header row with tooltip mode toggle */}
         <View style={styles.outputHeader}>
@@ -227,6 +241,11 @@ const styles = StyleSheet.create({
   intensityBtnActive: { backgroundColor: '#5b21b6', borderColor: '#7c3aed' },
   intensityBtnText: { color: '#64748b', fontSize: 12, fontWeight: '600' },
   intensityBtnTextActive: { color: '#fff' },
+  wordCountBadge: {
+    color: '#7c3aed', fontSize: 12, textAlign: 'center',
+    marginTop: -12, marginBottom: 16,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
   // Output header
   outputHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   modeBtn: {

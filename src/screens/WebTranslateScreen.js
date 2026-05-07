@@ -71,6 +71,7 @@ export default function WebTranslateScreen() {
   const [blocks, setBlocks] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [dynamicSite, setDynamicSite] = useState(false);
   const scrollRef = useRef(null);
 
   const handleFetch = async () => {
@@ -80,6 +81,7 @@ export default function WebTranslateScreen() {
     setLoading(true);
     setBlocks(null);
     setError(null);
+    setDynamicSite(false);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
 
     try {
@@ -98,9 +100,8 @@ export default function WebTranslateScreen() {
       const extracted = extractBlocks(html);
 
       if (extracted.length === 0) {
-        throw new Error(
-          'No readable content found — this page may require JavaScript to render.'
-        );
+        setDynamicSite(true);
+        return;
       }
 
       setBlocks(extracted.map(b => ({ ...b, translated: translateToDialect(b.text) })));
@@ -135,6 +136,10 @@ export default function WebTranslateScreen() {
         </TouchableOpacity>
       </View>
 
+      <Text style={styles.barHint}>
+        Works best with Wikipedia, news articles, and blogs — not apps like Twitter/X, Reddit, YouTube, or Gmail that load content dynamically.
+      </Text>
+
       <ScrollView ref={scrollRef} contentContainerStyle={styles.content}>
         {loading && (
           <View style={styles.center}>
@@ -162,7 +167,20 @@ export default function WebTranslateScreen() {
           <Block key={i} type={b.type} original={b.text} translated={b.translated} />
         ))}
 
-        {!loading && !error && !blocks && (
+        {dynamicSite && (
+          <View style={styles.center}>
+            <Text style={styles.emptyIcon}>⚙️</Text>
+            <Text style={styles.emptyTitle}>No readable content</Text>
+            <Text style={styles.emptyHint}>
+              This site loads content with JavaScript, so the page arrives empty.{'\n\n'}
+              Sites like these won't work:{'\n'}
+              Twitter/X · Reddit · YouTube · Gmail · Instagram
+            </Text>
+            <Text style={styles.emptyWorksHint}>Try a Wikipedia article or a news site instead.</Text>
+          </View>
+        )}
+
+        {!loading && !error && !blocks && !dynamicSite && (
           <View style={styles.center}>
             <Text style={styles.emptyIcon}>🌐</Text>
             <Text style={styles.emptyTitle}>Page Translator</Text>
@@ -204,6 +222,11 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 40, marginBottom: 16 },
   emptyTitle: { color: '#e2e8f0', fontSize: 20, fontWeight: '700', marginBottom: 10 },
   emptyHint: { color: '#4b5563', textAlign: 'center', lineHeight: 22 },
+  emptyWorksHint: { color: '#5b21b6', textAlign: 'center', marginTop: 14, fontSize: 13 },
+  barHint: {
+    color: '#4b5563', fontSize: 11, textAlign: 'center',
+    paddingHorizontal: 16, paddingBottom: 8, lineHeight: 16,
+  },
   errorCard: {
     backgroundColor: '#1a1a2e', borderRadius: 10, padding: 18,
     borderWidth: 1, borderColor: '#7f1d1d',

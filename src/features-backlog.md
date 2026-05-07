@@ -2,6 +2,95 @@
 
 ---
 
+## 2026-05-07
+
+### [x] Implemented (2026-05-07) — Web Translator User Education
+
+**One-line summary:** Permanent hint + smarter empty-state tell users which sites work and why others don't.
+
+### Acceptance Criteria
+- [ ] Permanent subtitle under the URL bar: "Works best with Wikipedia, news articles, and blogs"
+- [ ] Empty-state (0 blocks extracted) shows specific examples of sites that won't work: Twitter/X, Reddit, YouTube, Gmail
+- [ ] Empty-state distinguishes "no content found" (dynamic site) from network/HTTP errors (existing error card)
+- [ ] All existing error card behaviour unchanged
+
+### Files to Touch
+| File | Change |
+|---|---|
+| src/screens/WebTranslateScreen.js | Add hint text under bar; split empty-state into "dynamic site" vs existing error |
+
+### Effort Estimate
+Small — UI text + one extra conditional branch in render.
+
+---
+
+### [x] Implemented (2026-05-07) — Intensity UX Clarity
+
+**One-line summary:** Rename intensity steps to plain English labels and show a live word-count badge.
+
+### Acceptance Criteria
+- [ ] Step buttons labelled Off / Light / Half / Most / Full (replacing 0%/25%/50%/75%/100%)
+- [ ] A badge below the buttons shows "~N of M words translated" when intensity is Light/Half/Most
+- [ ] Badge hidden at Off and Full (redundant at extremes)
+- [ ] Badge updates immediately when intensity or input changes
+- [ ] No change to underlying translateWithIntensity logic
+
+### Files to Touch
+| File | Change |
+|---|---|
+| src/screens/TranslateScreen.js | Rename step labels; add word-count badge component |
+
+### Effort Estimate
+Small — label rename + computed badge, no logic changes.
+
+---
+
+### [x] Implemented (2026-05-07) — Phrase Library Search
+
+**One-line summary:** Search box above the SectionList filters phrases by content in real time.
+
+### Acceptance Criteria
+- [ ] TextInput search bar appears above the phrase list
+- [ ] Typing filters both phrase text (English and Yissian) across all categories
+- [ ] Matching sections with zero results are hidden entirely (no empty section headers)
+- [ ] Clearing search restores all sections
+- [ ] Search is case-insensitive
+
+### Files to Touch
+| File | Change |
+|---|---|
+| src/screens/PhrasesScreen.js | Add search state + filtered SECTIONS computation + search input UI |
+
+### Effort Estimate
+Small — in-memory filter with useMemo, no new deps.
+
+---
+
+### [ ] Pending — Android SDK Homepage Widget (SRV-2)
+
+**One-line summary:** SRV-2 exposes Android SDK health as a JSON endpoint; SRV-1 homepage shows a widget card.
+
+### Acceptance Criteria
+- [ ] SRV-2 serves `GET http://10.0.0.155:3010/api/android-health` returning JSON with: java_version, sdk_path, disk_gb, last_build_at, last_build_status
+- [ ] SRV-1 homepage dashboard shows an "Android Build" card in the SRV-2 section
+- [ ] Card displays: Java version, disk usage, last build timestamp + status
+- [ ] Card polls every 5 minutes (consistent with other service cards)
+
+### Files to Touch
+| File | Change |
+|---|---|
+| SRV-2: ~/scripts/android-health-server.py | New: tiny Flask/http.server exposing health JSON |
+| SRV-2: cron | Add entry to keep server running |
+| SRV-1: projects/Homepage-claude/... | New widget card + nginx proxy route |
+
+### Effort Estimate
+Medium — two machines involved; SRV-2 side is simple, SRV-1 homepage needs nginx + widget.
+
+### Open Questions
+- Does SRV-2 already have Flask installed, or should this use Python's built-in `http.server`?
+
+---
+
 ## 2026-05-06
 
 ### [x] Implemented (2026-05-06) — Dialect Intensity Selector

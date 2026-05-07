@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  View, Text, SectionList, TouchableOpacity, StyleSheet, Platform,
+  View, Text, SectionList, TouchableOpacity, StyleSheet, Platform, TextInput,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { translateToDialect } from 'yissian-engine';
@@ -35,25 +35,65 @@ function PhraseItem({ item }) {
 }
 
 export default function PhrasesScreen() {
+  const [search, setSearch] = useState('');
+
+  const filteredSections = useMemo(() => {
+    const q = search.toLowerCase().trim();
+    if (!q) return SECTIONS;
+    return SECTIONS
+      .map(section => ({
+        ...section,
+        data: section.data.filter(
+          item =>
+            item.original.toLowerCase().includes(q) ||
+            item.yissian.toLowerCase().includes(q)
+        ),
+      }))
+      .filter(section => section.data.length > 0);
+  }, [search]);
+
   return (
-    <SectionList
-      sections={SECTIONS}
-      keyExtractor={(item, index) => item.original + index}
-      renderItem={({ item }) => <PhraseItem item={item} />}
-      renderSectionHeader={({ section }) => (
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{section.title}</Text>
-        </View>
-      )}
-      contentContainerStyle={styles.list}
-      stickySectionHeadersEnabled
-      style={styles.container}
-    />
+    <View style={styles.container}>
+      <View style={styles.searchBar}>
+        <TextInput
+          style={styles.searchInput}
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Search phrases…"
+          placeholderTextColor="#555"
+          autoCorrect={false}
+          autoCapitalize="none"
+          clearButtonMode="while-editing"
+        />
+      </View>
+      <SectionList
+        sections={filteredSections}
+        keyExtractor={(item, index) => item.original + index}
+        renderItem={({ item }) => <PhraseItem item={item} />}
+        renderSectionHeader={({ section }) => (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+          </View>
+        )}
+        contentContainerStyle={styles.list}
+        stickySectionHeadersEnabled
+        keyboardShouldPersistTaps="handled"
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f0f14' },
+  searchBar: {
+    padding: 12, borderBottomWidth: 1, borderBottomColor: '#2d2d44',
+    backgroundColor: '#0f0f14',
+  },
+  searchInput: {
+    backgroundColor: '#1a1a2e', color: '#e2e8f0', borderRadius: 8,
+    paddingHorizontal: 12, paddingVertical: 9, fontSize: 14,
+    borderWidth: 1, borderColor: '#2d2d44',
+  },
   list: { paddingBottom: 32 },
   sectionHeader: {
     backgroundColor: '#0f0f14', paddingHorizontal: 16, paddingVertical: 10,
