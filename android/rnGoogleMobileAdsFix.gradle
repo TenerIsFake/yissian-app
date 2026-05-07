@@ -1,0 +1,52 @@
+// Replacement build.gradle for react-native-google-mobile-ads.
+// The original uses io.invertase.gradle.build:1.5 which handles codegen wiring.
+// Without that plugin, we must apply com.facebook.react unconditionally so RN
+// codegen generates NativeAppModuleSpec before the Kotlin compiler runs.
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'com.facebook.react'
+
+android {
+  compileSdkVersion 34
+
+  defaultConfig {
+    minSdkVersion 23
+    targetSdkVersion 34
+    multiDexEnabled true
+    buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", "false"
+    buildConfigField "String", "GOOGLE_MOBILE_ADS_JSON_RAW", '"{}"'
+    manifestPlaceholders = [
+      appJSONGoogleMobileAdsAppID                  : "ca-app-pub-9760203099492988~3292564703",
+      appJSONGoogleMobileAdsDelayAppMeasurementInit: false,
+      appJSONGoogleMobileAdsOptimizeInitialization : true,
+      appJSONGoogleMobileAdsOptimizeAdLoading      : true
+    ]
+    sourceSets {
+      main {
+        java.srcDirs += ['src/oldarch']
+      }
+    }
+  }
+
+  lintOptions {
+    disable 'GradleCompatible'
+    abortOnError false
+  }
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+}
+
+repositories {
+  google()
+  mavenCentral()
+}
+
+dependencies {
+  implementation "com.google.android.gms:play-services-ads:25.0.0"
+  api "com.google.android.ump:user-messaging-platform:4.0.0"
+  api "com.facebook.react:react-android"
+}
