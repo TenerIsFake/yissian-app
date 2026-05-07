@@ -26,7 +26,10 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0f0f14"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "config": {
+        "googleMobileAdsAppId": "ca-app-pub-3940256099942544~3347511713"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"

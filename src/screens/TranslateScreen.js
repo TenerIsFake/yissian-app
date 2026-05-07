@@ -7,6 +7,7 @@ import * as Clipboard from 'expo-clipboard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { translateToDialect, mergeOverrides } from 'yissian-engine';
 import { useHistory } from '../hooks/useHistory';
+import BannerAd from '../components/BannerAd';
 
 const OVERRIDES_URL =
   'https://raw.githubusercontent.com/TenerIsFake/homepage-claude/master/yissian.json';
@@ -76,42 +77,46 @@ export default function TranslateScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-      <Text style={styles.label}>Input</Text>
-      <TextInput
-        style={styles.input}
-        value={input}
-        onChangeText={setInput}
-        multiline
-        placeholder="Type something…"
-        placeholderTextColor="#666"
-        autoCorrect={false}
-        autoCapitalize="none"
-      />
+    <View style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+        <Text style={styles.label}>Input</Text>
+        <TextInput
+          style={styles.input}
+          value={input}
+          onChangeText={setInput}
+          multiline
+          placeholder="Type something…"
+          placeholderTextColor="#666"
+          autoCorrect={false}
+          autoCapitalize="none"
+        />
 
-      <Text style={styles.label}>Yissian</Text>
-      <View style={styles.outputBox}>
-        <Text style={styles.outputText} selectable>
-          {output || <Text style={styles.placeholder}>Translation appears here</Text>}
-        </Text>
-      </View>
+        <Text style={styles.label}>Yissian</Text>
+        <View style={styles.outputBox}>
+          <Text style={styles.outputText} selectable>
+            {output || <Text style={styles.placeholder}>Translation appears here</Text>}
+          </Text>
+        </View>
 
-      <View style={styles.actions}>
-        <TouchableOpacity style={styles.btn} onPress={handleCopy} disabled={!output}>
-          <Text style={styles.btnText}>{copied ? 'Copied!' : 'Copy'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.btn} onPress={handleShare} disabled={!output}>
-          <Text style={styles.btnText}>Share</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.btn, styles.btnMuted]} onPress={handleClear} disabled={!input}>
-          <Text style={styles.btnText}>Clear</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.btn} onPress={handleCopy} disabled={!output}>
+            <Text style={styles.btnText}>{copied ? 'Copied!' : 'Copy'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.btn} onPress={handleShare} disabled={!output}>
+            <Text style={styles.btnText}>Share</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.btn, styles.btnMuted]} onPress={handleClear} disabled={!input}>
+            <Text style={styles.btnText}>Clear</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+      <BannerAd />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: '#0f0f14' },
   container: { padding: 20, flexGrow: 1, backgroundColor: '#0f0f14' },
   label: { color: '#a78bfa', fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     fontSize: 11, letterSpacing: 3, marginBottom: 6, textTransform: 'uppercase' },
