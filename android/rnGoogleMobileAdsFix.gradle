@@ -1,11 +1,15 @@
 // Replacement build.gradle for react-native-google-mobile-ads.
-// The original uses io.invertase.gradle.build:1.5 which handles codegen wiring.
-// Without that plugin, we must apply com.facebook.react unconditionally so RN
-// codegen generates NativeAppModuleSpec before the Kotlin compiler runs.
+//
+// The original uses io.invertase.gradle.build:1.5 which only applies com.facebook.react
+// (and therefore codegen) when newArchEnabled=true. With old arch disabled, codegen
+// never runs so NativeAppModuleSpec is undefined at compile time.
+//
+// Fix: provide NativeAppModuleSpec as a hand-written old-arch stand-in stored at
+// android/generatedSrc/io/invertase/googlemobileads/NativeAppModuleSpec.java,
+// and add that directory as an extra Java source set here.
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'com.facebook.react'
 
 android {
   compileSdkVersion 34
@@ -24,7 +28,12 @@ android {
     ]
     sourceSets {
       main {
-        java.srcDirs += ['src/oldarch']
+        // oldarch contains hand-written spec stubs (NativeGoogleMobileAdsNativeModuleSpec etc.)
+        // generatedSrc contains our NativeAppModuleSpec old-arch stand-in
+        java.srcDirs += [
+          'src/oldarch',
+          new File(rootProject.projectDir, 'generatedSrc').absolutePath
+        ]
       }
     }
   }
