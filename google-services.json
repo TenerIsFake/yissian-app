@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "788815962736",
+    "project_id": "tendrid-apps",
+    "storage_bucket": "tendrid-apps.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:788815962736:android:6d975e7564c8bd88accab5",
+        "android_client_info": {
+          "package_name": "com.tenerisfake.yissian"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSW1RXCmXHNTMKYeYCmtVXoNLjITIC4mg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
