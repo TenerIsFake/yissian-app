@@ -37,18 +37,3 @@ expoAutolinking.useExpoVersionCatalog()
 
 include ':app'
 includeBuild(expoAutolinking.reactNativeGradlePlugin)
-
-// react-native-google-mobile-ads uses io.invertase.gradle.build:1.5 for codegen wiring.
-// That plugin applies com.facebook.react only when newArch is enabled; with old arch
-// disabled the codegen never runs so NativeAppModuleSpec is missing at compile time.
-// We replace the library's build.gradle with a version that applies com.facebook.react
-// unconditionally so codegen always generates the required spec classes.
-gradle.beforeProject { project ->
-  if (project.name == 'react-native-google-mobile-ads') {
-    def fixedFile = new File(settings.rootDir, 'rnGoogleMobileAdsFix.gradle')
-    if (fixedFile.exists() && project.buildFile.exists()) {
-      project.buildFile.text = fixedFile.text
-    }
-  }
-}
-

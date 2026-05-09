@@ -1,7 +1,7 @@
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const RC_API_KEY_ANDROID = 'REVENUECAT_API_KEY_PLACEHOLDER'; // SRV-2 to provide
+const RC_API_KEY_ANDROID = 'goog_ehuZqFGtiLuwYRLReYQFPttwjel';
 const ENTITLEMENT_ID = 'pro';
 const STATE_KEY = 'yissian_pro_v1';
 
