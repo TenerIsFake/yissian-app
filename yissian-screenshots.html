@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=390, initial-scale=1.0">
+<title>Yissian Translator — Screenshot Tool</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #111;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #0f0f14;
+    border-radius: 44px;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid #2a2a3a;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7), inset 0 0 0 1px #333;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .status-bar {
+    height: 50px;
+    background: #0f0f14;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 28px 6px;
+    flex-shrink: 0;
+  }
+  .status-time { color: #e2e8f0; font-size: 15px; font-weight: 600; }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .dynamic-island {
+    position: absolute;
+    top: 12px; left: 50%;
+    transform: translateX(-50%);
+    width: 120px; height: 34px;
+    background: #000;
+    border-radius: 20px;
+    z-index: 10;
+  }
+  .screen-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  .app-header {
+    background: #0f0f14;
+    padding: 8px 20px 12px;
+    border-bottom: 1px solid #1e1e2e;
+    flex-shrink: 0;
+  }
+  .app-header-row { display: flex; align-items: center; justify-content: space-between; }
+  .app-title { color: #a78bfa; font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+  .dialect-badge {
+    background: #2d1f52; color: #a78bfa;
+    font-size: 11px; font-weight: 600;
+    padding: 4px 10px; border-radius: 12px;
+    border: 1px solid #4c3480; letter-spacing: 1px;
+  }
+  .dialect-row { display: flex; gap: 6px; margin-top: 8px; }
+  .dialect-chip {
+    background: #1a1a2e; border: 1px solid #2d2d44;
+    border-radius: 14px; padding: 5px 12px;
+    color: #64748b; font-size: 11px; font-weight: 600;
+    cursor: pointer; user-select: none;
+  }
+  .dialect-chip.active { background: #3b1f6e; border-color: #7c3aed; color: #c4b5fd; }
+  .pro-chip {
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    color: #fff; font-size: 9px; font-weight: 700;
+    padding: 2px 6px; border-radius: 8px; letter-spacing: 0.5px;
+    vertical-align: middle; margin-left: 4px;
+  }
+  .tab-bar {
+    height: 82px; background: #0d0d18;
+    border-top: 1px solid #1e1e2e;
+    display: flex; padding-bottom: 20px; flex-shrink: 0;
+  }
+  .tab {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 3px;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .tab-icon { font-size: 22px; line-height: 1; }
+  .tab-label { font-size: 10px; font-weight: 500; color: #4b5563; letter-spacing: 0.5px; }
+  .tab.active .tab-label { color: #a78bfa; }
+  .tab-dot { width: 4px; height: 4px; border-radius: 50%; background: #7c3aed; margin-top: 1px; display: none; }
+  .tab.active .tab-dot { display: block; }
+  .scroll-body { flex: 1; overflow-y: auto; padding: 16px 18px; scrollbar-width: none; }
+  .scroll-body::-webkit-scrollbar { display: none; }
+  .section-label {
+    color: #a78bfa; font-size: 10px; letter-spacing: 3px;
+    text-transform: uppercase; margin-bottom: 6px;
+    font-family: 'Courier New', monospace; font-weight: 600;
+  }
+  .text-input {
+    background: #1a1a2e; border: 1px solid #2d2d44; border-radius: 10px;
+    padding: 14px; color: #e2e8f0; font-size: 16px;
+    min-height: 110px; resize: none; width: 100%;
+    outline: none; font-family: inherit; line-height: 1.5; margin-bottom: 14px;
+    vertical-align: top;
+  }
+  .text-input::placeholder { color: #444; }
+  .text-input:focus { border-color: #5b21b6; }
+  .intensity-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .intensity-label {
+    color: #a78bfa; font-size: 10px; letter-spacing: 3px;
+    text-transform: uppercase; font-family: 'Courier New', monospace;
+    font-weight: 600; white-space: nowrap;
+  }
+  .intensity-btns { display: flex; gap: 6px; flex: 1; }
+  .intensity-btn {
+    flex: 1; border-radius: 6px; padding: 7px 0; text-align: center;
+    background: #1a1a2e; border: 1px solid #2d2d44; color: #64748b;
+    font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+    user-select: none;
+  }
+  .intensity-btn.active { background: #5b21b6; border-color: #7c3aed; color: #fff; }
+  .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .mode-btn {
+    background: #1a1a2e; border: 1px solid #2d2d44; border-radius: 6px;
+    padding: 4px 10px; color: #a78bfa; font-size: 12px;
+    cursor: pointer; user-select: none;
+  }
+  .mode-btn.active { background: #3b1f6e; border-color: #7c3aed; }
+  .output-box {
+    background: #1a1a2e; border: 1px solid #3d2d64; border-radius: 10px;
+    padding: 14px; min-height: 110px; margin-bottom: 20px;
+    color: #c4b5fd; font-size: 16px; line-height: 1.6;
+  }
+  .output-placeholder { color: #444; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    background: #2d1f52; border: 1px solid #4c3480; border-radius: 6px;
+    padding: 6px 10px; color: #c4b5fd; font-size: 14px;
+    position: relative; cursor: pointer; user-select: none;
+  }
+  .chip.active { background: #5b21b6; border-color: #a78bfa; }
+  .chip-tooltip { display: block; color: #94a3b8; font-size: 10px; margin-top: 2px; }
+  .actions { display: flex; gap: 10px; margin-bottom: 16px; }
+  .btn {
+    flex: 1; background: #5b21b6; border: none; border-radius: 8px;
+    padding: 13px 0; color: #fff; font-size: 14px; font-weight: 600;
+    cursor: pointer; text-align: center; transition: all 0.15s; user-select: none;
+  }
+  .btn.muted { background: #2d2d44; }
+  .btn.success { background: #16a34a; }
+  .hist-card {
+    background: #1a1a2e; border: 1px solid #2d2d44; border-radius: 10px;
+    padding: 14px; margin-bottom: 10px; position: relative; cursor: pointer;
+  }
+  .hist-card.starred { border-color: #7c3aed; background: #1e1a35; }
+  .hist-star { position: absolute; top: 12px; right: 12px; font-size: 16px; cursor: pointer; user-select: none; }
+  .hist-input { color: #94a3b8; font-size: 14px; margin-bottom: 4px; padding-right: 28px; }
+  .hist-arrow { color: #a78bfa; font-size: 13px; margin: 3px 0; }
+  .hist-output { color: #c4b5fd; font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+  .hist-date { color: #4b5563; font-size: 10px; font-family: 'Courier New', monospace; }
+  .hist-clear { color: #ef4444; font-size: 13px; text-align: center; padding: 10px 0; cursor: pointer; }
+  .rules-intro { color: #94a3b8; font-size: 13px; line-height: 1.7; margin-bottom: 16px; }
+  .rules-hl { color: #a78bfa; font-weight: 600; }
+  .rule-card {
+    background: #1a1a2e; border: 1px solid #2d2d44; border-radius: 10px;
+    padding: 14px; margin-bottom: 10px;
+  }
+  .rule-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; gap: 8px; }
+  .rule-suffix { color: #a78bfa; font-family: 'Courier New', monospace; font-size: 15px; font-weight: 700; letter-spacing: 1px; }
+  .rule-when { color: #e2e8f0; font-size: 12px; font-weight: 600; text-align: right; max-width: 55%; line-height: 1.4; }
+  .rule-detail { color: #64748b; font-size: 12px; line-height: 1.6; margin-bottom: 8px; }
+  .rule-examples { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ex-in { color: #94a3b8; font-size: 12px; }
+  .ex-arrow { color: #4b5563; font-size: 12px; }
+  .ex-out { color: #c4b5fd; font-size: 12px; font-weight: 600; }
+  .rules-footer { color: #4b5563; font-size: 11px; text-align: center; padding: 12px 0; font-family: 'Courier New', monospace; }
+  .phrase-search {
+    background: #1a1a2e; border: 1px solid #2d2d44; border-radius: 10px;
+    padding: 11px 14px; color: #e2e8f0; font-size: 14px;
+    width: 100%; outline: none; font-family: inherit; margin-bottom: 14px;
+  }
+  .phrase-search::placeholder { color: #444; }
+  .phrase-section-title {
+    color: #4b5563; font-size: 10px; letter-spacing: 3px;
+    text-transform: uppercase; font-family: 'Courier New', monospace;
+    padding: 8px 0 6px; font-weight: 600;
+  }
+  .phrase-card {
+    background: #1a1a2e; border: 1px solid #2d2d44; border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  .phrase-body { flex: 1; min-width: 0; }
+  .phrase-orig { color: #94a3b8; font-size: 13px; margin-bottom: 3px; }
+  .phrase-arrow-sm { color: #4b5563; font-size: 11px; margin-bottom: 2px; }
+  .phrase-yiss { color: #c4b5fd; font-size: 14px; font-weight: 500; }
+  .phrase-copy {
+    background: #2d1f52; border: 1px solid #4c3480; border-radius: 6px;
+    padding: 6px 12px; color: #a78bfa; font-size: 12px; font-weight: 600;
+    cursor: pointer; white-space: nowrap; user-select: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1 — Translate (full content) -->
+<div class="phone" id="phone1">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/><rect x="13.5" y="0" width="2.5" height="12" rx="1" opacity="0.3"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M8 2.5C10.8 2.5 13.3 3.7 15 5.7L16 4.5C14 2.2 11.2 0.5 8 0.5S2 2.2 0 4.5L1 5.7C2.7 3.7 5.2 2.5 8 2.5Z"/><path d="M8 5.5C9.9 5.5 11.6 6.3 12.8 7.6L14 6.4C12.4 4.8 10.3 3.8 8 3.8S3.6 4.8 2 6.4L3.2 7.6C4.4 6.3 6.1 5.5 8 5.5Z"/><circle cx="8" cy="10" r="2"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="18" height="8" rx="2" fill="white"/><path d="M23 4.5V7.5C23.8 7.2 24.5 6.5 24.5 6S23.8 4.8 23 4.5Z" fill="white" opacity="0.4"/></svg>
+    </div>
+  </div>
+  <div class="screen-content">
+    <div class="app-header">
+      <div class="app-header-row">
+        <span class="app-title">Yissian</span>
+        <span class="dialect-badge">DIALECT</span>
+      </div>
+      <div class="dialect-row">
+        <span class="dialect-chip active">Yissian</span>
+        <span class="dialect-chip">Pig Latin</span>
+        <span class="dialect-chip">Pootie Tang <span class="pro-chip">PRO</span></span>
+      </div>
+    </div>
+    <div class="scroll-body">
+      <div class="section-label">Input</div>
+      <textarea class="text-input" id="s1-input" placeholder="Type something…" oninput="s1translate()">Hell yeah, this is really beautiful!</textarea>
+      <div class="intensity-row">
+        <span class="intensity-label">Intensity</span>
+        <div class="intensity-btns">
+          <div class="intensity-btn" onclick="s1setIntensity(0,this)">Off</div>
+          <div class="intensity-btn" onclick="s1setIntensity(25,this)">Light</div>
+          <div class="intensity-btn" onclick="s1setIntensity(50,this)">Half</div>
+          <div class="intensity-btn" onclick="s1setIntensity(75,this)">Most</div>
+          <div class="intensity-btn active" onclick="s1setIntensity(100,this)">Full</div>
+        </div>
+      </div>
+      <div class="output-header">
+        <div class="section-label" style="margin-bottom:0">Yissian</div>
+        <div class="mode-btn" id="s1-wordbtn" onclick="s1toggleWords()">📝 Words</div>
+      </div>
+      <div class="output-box" id="s1-output"></div>
+      <div class="actions">
+        <button class="btn" id="s1-copybtn" onclick="s1copy()">Copy</button>
+        <button class="btn" onclick="">Share</button>
+        <button class="btn muted" onclick="s1clear()">Clear</button>
+      </div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab active"><span class="tab-icon">🌀</span><span class="tab-label">Translate</span><div class="tab-dot"></div></div>
+    <div class="tab"><span class="tab-icon">🕐</span><span class="tab-label">History</span><div class="tab-dot"></div></div>
+    <div class="tab"><span class="tab-icon">📋</span><span class="tab-label">Phrases</span><div class="tab-dot"></div></div>
+    <div class="tab"><span class="tab-icon">📖</span><span class="tab-label">Rules</span><div class="tab-dot"></div></div>
+  </div>
+</div>
+
+<!-- SCREEN 2 — Word chips mode -->
+<div class="phone" id="phone2">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/><rect x="13.5" y="0" width="2.5" height="12" rx="1" opacity="0.3"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M8 2.5C10.8 2.5 13.3 3.7 15 5.7L16 4.5C14 2.2 11.2 0.5 8 0.5S2 2.2 0 4.5L1 5.7C2.7 3.7 5.2 2.5 8 2.5Z"/><path d="M8 5.5C9.9 5.5 11.6 6.3 12.8 7.6L14 6.4C12.4 4.8 10.3 3.8 8 3.8S3.6 4.8 2 6.4L3.2 7.6C4.4 6.3 6.1 5.5 8 5.5Z"/><circle cx="8" cy="10" r="2"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="18" height="8" rx="2" fill="white"/><path d="M23 4.5V7.5C23.8 7.2 24.5 6.5 24.5 6S23.8 4.8 23 4.5Z" fill="white" opacity="0.4"/></svg>
+    </div>
+  </div>
+  <div class="screen-content">
+    <div class="app-header">
+      <div class="app-header-row">
+        <span class="app-title">Yissian</span>
+        <span class="dialect-badge">DIALECT</span>
+      </div>
+      <div class="dialect-row">
+        <span class="dialect-chip active">Yissian</span>
+        <span class="dialect-chip">Pig Latin</span>
+        <span class="dialect-chip">Pootie Tang <span class="pro-chip">PRO</span></span>
+      </div>
+    </div>
+    <div class="scroll-body">
+      <div class="section-label">Input</div>
+      <textarea class="text-input" id="s2-input" placeholder="Type something…" oninput="s2translate()" style="min-height:80px">Good morning, you are looking great today!</textarea>
+      <div class="intensity-row">
+        <span class="intensity-label">Intensity</span>
+        <div class="intensity-btns">
+          <div class="intensity-btn" onclick="s2setIntensity(0,this)">Off</div>
+          <div class="intensity-btn" onclick="s2setIntensity(25,this)">Light</div>
+          <div class="intensity-btn" onclick="s2setIntensity(50,this)">Half</div>
+          <div class="intensity-btn" onclick="s2setIntensity(75,this)">Most</div>
+          <div class="intensity-btn active" onclick="s2setIntensity(100,this)">Full</div>
+        </div>
+      </div>
+      <div class="output-header">
+        <div class="section-label" style="margin-bottom:0">Yissian</div>
+        <div class="mode-btn active" id="s2-wordbtn" onclick="s2toggleWords()">📝 Words</div>
+      </div>
+      <div class="output-box" id="s2-output" style="min-height:90px"></div>
+      <div class="actions">
+        <button class="btn" id="s2-copybtn" onclick="s2copy()">Copy</button>
+        <button class="btn" onclick="">Share</button>
+        <button class="btn muted" onclick="s2clear()">Clear</button>
+      </div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab active"><span class="tab-icon">🌀</span><span class="tab-label">Translate</span><div class="tab-dot"></div></div>
+    <div class="tab"><span class="tab-icon">🕐</span><span class="tab-label">History</span><div class="tab-dot"></div></div>
+    <div class="tab"><span class="tab-icon">📋</span><span class="tab-label">Phrases</span><div class="tab-dot"></div></div>
+    <div class="tab"><span class="tab-icon">📖</span><span class="tab-label">Rules</span><div class="tab-dot"></div></div>
+  </div>
+</div>
+
+<!-- SCREEN 3 — History -->
+<div class="phone" id="phone3">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/><rect x="13.5" y="0" width="2.5" height="12" rx="1" opacity="0.3"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M8 2.5C10.8 2.5 13.3 3.7 15 5.7L16 4.5C14 2.2 11.2 0.5 8 0.5S2 2.2 0 4.5L1 5.7C2.7 3.7 5.2 2.5 8 2.5Z"/><path d="M8 5.5C9.9 5.5 11.6 6.3 12.8 7.6L14 6.4C12.4 4.8 10.3 3.8 8 3.8S3.6 4.8 2 6.4L3.2 7.6C4.4 6.3 6.1 5.5 8 5.5Z"/><circle cx="8" cy="10" r="2"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="18" height="8" rx="2" fill="white"/><path d="M23 4.5V7.5C23.8 7.2 24.5 6.5 24.5 6S23.8 4.8 23 4.5Z" fill="white" opacity="0.4"/></svg>
+    </div>
+  </div>
+  <div class="screen-content">
+    <div class="app-header">
+      <div class="app-header-row">
+        <span class="app-title">History</span>
+        <span class="dialect-badge">YISSIAN</span>
+      </div>
+    </div>
+    <div class="scroll-body" id="history-list"></div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab"><span class="tab-icon">🌀</span><span class="tab-label">Translate</span><div class="tab-dot"></div></div>
+    <div class="tab active"><span class="tab-icon">🕐</span><span class="tab-label">History</span><div class="tab-dot"></div></div>
+    <div class="tab"><span class="tab-icon">📋</span><span class="tab-label">Phrases</span><div class="tab-dot"></div></div>
+    <div class="tab"><span class="tab-icon">📖</span><span class="tab-label">Rules</span><div class="tab-dot"></div></div>
+  </div>
+</div>
+
+<!-- SCREEN 4 — Rules -->
+<div class="phone" id="phone4">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/><rect x="13.5" y="0" width="2.5" height="12" rx="1" opacity="0.3"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M8 2.5C10.8 2.5 13.3 3.7 15 5.7L16 4.5C14 2.2 11.2 0.5 8 0.5S2 2.2 0 4.5L1 5.7C2.7 3.7 5.2 2.5 8 2.5Z"/><path d="M8 5.5C9.9 5.5 11.6 6.3 12.8 7.6L14 6.4C12.4 4.8 10.3 3.8 8 3.8S3.6 4.8 2 6.4L3.2 7.6C4.4 6.3 6.1 5.5 8 5.5Z"/><circle cx="8" cy="10" r="2"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="18" height="8" rx="2" fill="white"/><path d="M23 4.5V7.5C23.8 7.2 24.5 6.5 24.5 6S23.8 4.8 23 4.5Z" fill="white" opacity="0.4"/></svg>
+    </div>
+  </div>
+  <div class="screen-content">
+    <div class="app-header">
+      <div class="app-header-row">
+        <span class="app-title">Dialect Rules</span>
+        <span class="dialect-badge">YISSIAN</span>
+      </div>
+    </div>
+    <div class="scroll-body">
+      <p class="rules-intro">Every word keeps its <span class="rules-hl">onset</span> (initial consonant cluster). The vowel nucleus determines which suffix replaces the rest.</p>
+      <div class="rule-card">
+        <div class="rule-header"><span class="rule-suffix">-iss</span><span class="rule-when">Front / short vowels</span></div>
+        <p class="rule-detail">Words with a, e, i, ay, ea, ai nuclei become onset + -iss</p>
+        <div class="rule-examples">
+          <span><span class="ex-in">cat</span><span class="ex-arrow"> → </span><span class="ex-out">ciss</span></span>
+          <span><span class="ex-in">snake</span><span class="ex-arrow"> → </span><span class="ex-out">sniss</span></span>
+          <span><span class="ex-in">hell</span><span class="ex-arrow"> → </span><span class="ex-out">hiss</span></span>
+          <span><span class="ex-in">yeah</span><span class="ex-arrow"> → </span><span class="ex-out">yiss</span></span>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-header"><span class="rule-suffix">-riss</span><span class="rule-when">Back / resonant vowels</span></div>
+        <p class="rule-detail">Words with o, ou, ow, oo, ue nuclei and magic-e (a/i/o+Ce) become onset + -riss</p>
+        <div class="rule-examples">
+          <span><span class="ex-in">cool</span><span class="ex-arrow"> → </span><span class="ex-out">criss</span></span>
+          <span><span class="ex-in">right</span><span class="ex-arrow"> → </span><span class="ex-out">riss</span></span>
+          <span><span class="ex-in">blade</span><span class="ex-arrow"> → </span><span class="ex-out">bladriss</span></span>
+          <span><span class="ex-in">great</span><span class="ex-arrow"> → </span><span class="ex-out">griss</span></span>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-header"><span class="rule-suffix">-rid</span><span class="rule-when">Completive endings</span></div>
+        <p class="rule-detail">Suffixes -er, -le, -ness, -ment, -ful; r-colored vowels; consonant+y triggers completive form</p>
+        <div class="rule-examples">
+          <span><span class="ex-in">better</span><span class="ex-arrow"> → </span><span class="ex-out">bettrid</span></span>
+          <span><span class="ex-in">beautiful</span><span class="ex-arrow"> → </span><span class="ex-out">beautifrid</span></span>
+          <span><span class="ex-in">arm</span><span class="ex-arrow"> → </span><span class="ex-out">armrid</span></span>
+          <span><span class="ex-in">fries</span><span class="ex-arrow"> → </span><span class="ex-out">frid</span></span>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-header"><span class="rule-suffix">-issin'</span><span class="rule-when">Gerundive (-ing)</span></div>
+        <p class="rule-detail">Words ending in -ing or -in' become onset + -issin'</p>
+        <div class="rule-examples">
+          <span><span class="ex-in">running</span><span class="ex-arrow"> → </span><span class="ex-out">rissin'</span></span>
+          <span><span class="ex-in">going</span><span class="ex-arrow"> → </span><span class="ex-out">gissin'</span></span>
+          <span><span class="ex-in">fucking</span><span class="ex-arrow"> → </span><span class="ex-out">fissin'</span></span>
+        </div>
+      </div>
+      <div class="rule-card">
+        <div class="rule-header"><span class="rule-suffix">Verbatim</span><span class="rule-when">Preserved unchanged</span></div>
+        <p class="rule-detail">Function words (a, the, and, I, is…), numbers, URLs, and punctuation are never transformed.</p>
+        <div class="rule-examples">
+          <span><span class="ex-in">the</span><span class="ex-arrow"> → </span><span class="ex-out">the</span></span>
+          <span><span class="ex-in">42</span><span class="ex-arrow"> → </span><span class="ex-out">42</span></span>
+          <span><span class="ex-in">and</span><span class="ex-arrow"> → </span><span class="ex-out">and</span></span>
+        </div>
+      </div>
+      <p class="rules-footer">yissian-engine v1.1.0 · npm</p>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab"><span class="tab-icon">🌀</span><span class="tab-label">Translate</span><div class="tab-dot"></div></div>
+    <div class="tab"><span class="tab-icon">🕐</span><span class="tab-label">History</span><div class="tab-dot"></div></div>
+    <div class="tab"><span class="tab-icon">📋</span><span class="tab-label">Phrases</span><div class="tab-dot"></div></div>
+    <div class="tab active"><span class="tab-icon">📖</span><span class="tab-label">Rules</span><div class="tab-dot"></div></div>
+  </div>
+</div>
+
+<!-- SCREEN 5 — Phrases -->
+<div class="phone" id="phone5">
+  <div class="dynamic-island"></div>
+  <div class="status-bar">
+    <span class="status-time">9:41</span>
+    <div class="status-icons">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/><rect x="13.5" y="0" width="2.5" height="12" rx="1" opacity="0.3"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M8 2.5C10.8 2.5 13.3 3.7 15 5.7L16 4.5C14 2.2 11.2 0.5 8 0.5S2 2.2 0 4.5L1 5.7C2.7 3.7 5.2 2.5 8 2.5Z"/><path d="M8 5.5C9.9 5.5 11.6 6.3 12.8 7.6L14 6.4C12.4 4.8 10.3 3.8 8 3.8S3.6 4.8 2 6.4L3.2 7.6C4.4 6.3 6.1 5.5 8 5.5Z"/><circle cx="8" cy="10" r="2"/></svg>
+      <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="white" stroke-opacity="0.35"/><rect x="2" y="2" width="18" height="8" rx="2" fill="white"/><path d="M23 4.5V7.5C23.8 7.2 24.5 6.5 24.5 6S23.8 4.8 23 4.5Z" fill="white" opacity="0.4"/></svg>
+    </div>
+  </div>
+  <div class="screen-content">
+    <div class="app-header">
+      <div class="app-header-row">
+        <span class="app-title">Phrases</span>
+        <span class="dialect-badge">YISSIAN</span>
+      </div>
+    </div>
+    <div class="scroll-body">
+      <input class="phrase-search" type="text" placeholder="🔍  Search phrases…" oninput="filterPhrases(this.value)">
+      <div id="phrases-list"></div>
+    </div>
+  </div>
+  <div class="tab-bar">
+    <div class="tab"><span class="tab-icon">🌀</span><span class="tab-label">Translate</span><div class="tab-dot"></div></div>
+    <div class="tab"><span class="tab-icon">🕐</span><span class="tab-label">History</span><div class="tab-dot"></div></div>
+    <div class="tab active"><span class="tab-icon">📋</span><span class="tab-label">Phrases</span><div class="tab-dot"></div></div>
+    <div class="tab"><span class="tab-icon">📖</span><span class="tab-label">Rules</span><div class="tab-dot"></div></div>
+  </div>
+</div>
+
+<script>
+// ── Yissian Engine (inlined) ───────────────────────────────────────────────
+
+const FUNCTION_WORDS = new Set([
+  'a','an','the','and','but','or','nor','for','so','yet',
+  'to','of','in','on','at','by','up','as','via',
+  'i','we','you','he','she','it','they',
+  'me','us','him','her','them',
+  'my','our','your','his','its','their',
+  'this','that','these','those',
+  'is','be','was','were','am','are','has','have','had',
+  'do','does','did','not','no','yes',
+  'if','then','else','when','while',
+]);
+const OVERRIDES = {
+  'yeah':'yiss','right':'riss','hell':'hiss',
+  'fucking':"fissin'",'fuckin':"fissin'",'fuck':'friss',
+  'steak':'striss','great':'griss','break':'briss','bear':'briss',
+  'wear':'wriss','swear':'swriss','pear':'priss',
+  'love':'liss','give':'giss','live':'liss','have':'havrid',
+  'done':'diss','none':'niss','gone':'griss','come':'criss','some':'sriss',
+  'night':'niss','light':'liss','might':'miss','fight':'fiss','sight':'siss',
+  'tight':'tiss','bright':'briss','knight':'niss','flight':'fliss',
+  'blight':'bliss','slight':'sliss','plight':'pliss','white':'wiss',
+  'dark':'driss','now':'niss','coke':'criss','cool':'criss','over':'overid',
+  'water':'wiss','quick':'quickrid','moment':'momrid',
+  "can't":'criss',"don't":'driss',"won't":'wriss',
+  "it's":'iss',"that's":'thiss',"what's":'wriss',"i'm":'iss',
+  "you're":'yriss',"they're":'thriss',"we're":'wriss',
+  "i've":'iss',"you've":'yriss','error':'iss',"y'all":'yinz',
+};
+const DIGRAPHS=['ea','ee','ei','ie','ai','ay','oa','oe','oo','ou','ow','ue','ui','ew','au','aw','oi','oy'];
+const RISS_NUCLEI=new Set(['o','oa','oe','ou','ow','ue','ui','ew','au','aw','oi','oy']);
+
+function getNucleus(a){const t=a.slice(0,2).toLowerCase();if(DIGRAPHS.includes(t))return t;const o=a[0]?.toLowerCase();if(o&&'aeiou'.includes(o))return o;return null;}
+function transformCore(word){
+  const lower=word.toLowerCase();
+  if(OVERRIDES[lower])return OVERRIDES[lower];
+  if(FUNCTION_WORDS.has(lower))return lower;
+  if(word.length<=2)return lower;
+  if(!/[aeiou]/i.test(word))return lower;
+  const onset=(lower.match(/^([^aeiou]*)/)||['',''])[1];
+  if(/in[g']?$/.test(lower))return onset+"issin'";
+  if(/[a-z]ly$/.test(lower)&&lower.length>3)return transformCore(lower.slice(0,-2))+'ly';
+  if(/[a-z]ness$/.test(lower)&&lower.length>5)return lower.slice(0,-4)+'rid';
+  if(/[a-z]ment$/.test(lower)&&lower.length>5)return lower.slice(0,-4)+'rid';
+  if(/ful$/.test(lower)&&lower.length>4)return lower.slice(0,-2)+'rid';
+  if(/[^aeiou]er$/.test(lower)&&lower.length>3)return lower.slice(0,-2)+'rid';
+  if(/[^aeiou]le$/.test(lower)&&lower.length>3)return lower.slice(0,-2)+'rid';
+  if(/ies$/.test(lower)||/ied$/.test(lower))return onset+'id';
+  if(/[^aeiou]ed$/.test(lower))return onset+'id';
+  if(lower.length>3&&/[^aeiou]y$/.test(lower))return onset+'id';
+  if(lower.includes("n't"))return lower.replace("'",'')+'rid';
+  const magicE=lower.match(/^([^aeiou]*[aiou][^aeiou]+)e$/);
+  if(magicE){const stem=magicE[1];const v=stem.match(/[aiou]/)[0];if(v==='u')return stem+'rid';return stem+(onset.endsWith('r')?'iss':'riss');}
+  const afterOnset=lower.slice(onset.length);
+  const nucleus=getNucleus(afterOnset);
+  if(!nucleus)return lower;
+  const afterNucleus=afterOnset.slice(nucleus.length);
+  if(afterNucleus.startsWith('r')){if(nucleus.length===1)return lower+'rid';return onset+(onset.endsWith('r')?'iss':'riss');}
+  const needsR=RISS_NUCLEI.has(nucleus)&&!onset.endsWith('r');
+  return onset+(needsR?'riss':'iss');
+}
+function preserveCase(t,o){
+  if(!o||!t)return t;
+  if(o.length>1&&o===o.toUpperCase())return t.toUpperCase();
+  if(o[0]===o[0].toUpperCase()&&/[a-z]/.test(o))return t[0].toUpperCase()+t.slice(1);
+  return t;
+}
+const TOKEN_RE=/([A-Za-z][A-Za-z']*|[0-9][\d.,:/%-]*|\s+|[^\w\s])/g;
+const PRESERVE_TOKEN=/^(https?:\/\/\S+|\d+\.\d+\.\d+\.\d+[\d.]*|[\d.,:/%-]+)$/;
+function transformToken(token){
+  if(/^\s+$/.test(token)||/^[^\w]+$/.test(token)||PRESERVE_TOKEN.test(token))return token;
+  if(token.includes('-'))return token.split('-').map(p=>preserveCase(transformCore(p),p)).join('-');
+  return preserveCase(transformCore(token),token);
+}
+function translateToDialect(text){
+  if(typeof text!=='string'||!text)return text;
+  return text.replace(TOKEN_RE,transformToken);
+}
+
+// ── Safe DOM helpers ───────────────────────────────────────────────────────
+
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function el(tag, props, ...children) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(props || {})) {
+    if (k === 'className') node.className = v;
+    else if (k.startsWith('on')) node.addEventListener(k.slice(2).toLowerCase(), v);
+    else node.setAttribute(k, v);
+  }
+  children.flat().forEach(c => {
+    if (typeof c === 'string') node.appendChild(document.createTextNode(c));
+    else if (c) node.appendChild(c);
+  });
+  return node;
+}
+
+// ── Screen 1 ──────────────────────────────────────────────────────────────
+
+let s1Intensity = 100, s1WordMode = false, s1Input = '', s1Output = '';
+
+function translateWithIntensity(text, intensity) {
+  if (intensity === 100) return translateToDialect(text);
+  if (intensity === 0) return text;
+  const level = [0,25,50,75,100].indexOf(intensity);
+  return text.split(' ').map((w,i) => (i%4)<level ? translateToDialect(w) : w).join(' ');
+}
+
+function s1translate() {
+  s1Input = document.getElementById('s1-input').value;
+  s1Output = s1Input ? translateWithIntensity(s1Input, s1Intensity) : '';
+  s1render();
+}
+
+function s1render() {
+  const box = document.getElementById('s1-output');
+  box.textContent = '';
+  if (!s1Output) { box.appendChild(el('span', {className:'output-placeholder'}, 'Translation appears here')); return; }
+  if (s1WordMode) {
+    const chips = el('div', {className:'chips'});
+    const inW = s1Input.split(' '), outW = s1Output.split(' ');
+    outW.forEach((w, i) => {
+      const orig = inW[i];
+      const changed = orig && orig.toLowerCase() !== w.toLowerCase();
+      const chip = el('div', {className:'chip'});
+      chip.appendChild(document.createTextNode(w));
+      if (changed) {
+        const tip = el('span', {className:'chip-tooltip'}, orig);
+        tip.style.display = 'none';
+        chip.appendChild(tip);
+        chip.addEventListener('click', () => {
+          const vis = tip.style.display !== 'none';
+          chip.classList.toggle('active', !vis);
+          tip.style.display = vis ? 'none' : 'block';
+        });
+      }
+      chips.appendChild(chip);
+    });
+    box.appendChild(chips);
+  } else {
+    box.textContent = s1Output;
+  }
+}
+
+function s1setIntensity(val, btn) {
+  s1Intensity = val;
+  document.querySelectorAll('#phone1 .intensity-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  s1translate();
+}
+
+function s1toggleWords() {
+  s1WordMode = !s1WordMode;
+  document.getElementById('s1-wordbtn').classList.toggle('active', s1WordMode);
+  s1render();
+}
+
+function s1copy() {
+  if (!s1Output) return;
+  navigator.clipboard.writeText(s1Output).catch(() => {});
+  const btn = document.getElementById('s1-copybtn');
+  btn.textContent = 'Copied!'; btn.classList.add('success');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('success'); }, 1500);
+}
+
+function s1clear() {
+  document.getElementById('s1-input').value = '';
+  s1Input = ''; s1Output = ''; s1render();
+}
+
+// ── Screen 2 ──────────────────────────────────────────────────────────────
+
+let s2Intensity = 100, s2WordMode = true, s2Input = '', s2Output = '';
+
+function s2translate() {
+  s2Input = document.getElementById('s2-input').value;
+  s2Output = s2Input ? translateWithIntensity(s2Input, s2Intensity) : '';
+  s2render();
+}
+
+function s2render() {
+  const box = document.getElementById('s2-output');
+  box.textContent = '';
+  if (!s2Output) { box.appendChild(el('span', {className:'output-placeholder'}, 'Translation appears here')); return; }
+  if (s2WordMode) {
+    const chips = el('div', {className:'chips'});
+    const inW = s2Input.split(' '), outW = s2Output.split(' ');
+    outW.forEach((w, i) => {
+      const orig = inW[i];
+      const changed = orig && orig.toLowerCase() !== w.toLowerCase();
+      const chip = el('div', {className: i===2 ? 'chip active' : 'chip'});
+      chip.appendChild(document.createTextNode(w));
+      if (changed) {
+        const tip = el('span', {className:'chip-tooltip'}, orig);
+        tip.style.display = i===2 ? 'block' : 'none';
+        chip.appendChild(tip);
+        chip.addEventListener('click', () => {
+          const vis = tip.style.display !== 'none';
+          chip.classList.toggle('active', !vis);
+          tip.style.display = vis ? 'none' : 'block';
+        });
+      }
+      chips.appendChild(chip);
+    });
+    box.appendChild(chips);
+  } else {
+    box.textContent = s2Output;
+  }
+}
+
+function s2setIntensity(val, btn) {
+  s2Intensity = val;
+  document.querySelectorAll('#phone2 .intensity-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  s2translate();
+}
+
+function s2toggleWords() {
+  s2WordMode = !s2WordMode;
+  document.getElementById('s2-wordbtn').classList.toggle('active', s2WordMode);
+  s2render();
+}
+
+function s2copy() {
+  if (!s2Output) return;
+  navigator.clipboard.writeText(s2Output).catch(() => {});
+  const btn = document.getElementById('s2-copybtn');
+  btn.textContent = 'Copied!'; btn.classList.add('success');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('success'); }, 1500);
+}
+
+function s2clear() {
+  document.getElementById('s2-input').value = '';
+  s2Input = ''; s2Output = ''; s2render();
+}
+
+// ── Screen 3 — History ────────────────────────────────────────────────────
+
+const HISTORY = [
+  { input: "Hell yeah, this is really beautiful!", starred: true,  ts: "Today, 9:38 AM" },
+  { input: "Good morning, you are looking great today!", starred: false, ts: "Today, 9:35 AM" },
+  { input: "I cannot believe how fast this thing works.", starred: false, ts: "Today, 9:31 AM" },
+  { input: "Let us go get some coffee and talk about it.", starred: true, ts: "Yesterday" },
+  { input: "That was an absolutely incredible performance.", starred: false, ts: "Yesterday" },
+  { input: "You should definitely try this amazing app.", starred: false, ts: "2 days ago" },
+];
+
+function buildHistory() {
+  const list = document.getElementById('history-list');
+  list.textContent = '';
+  HISTORY.forEach((h, i) => {
+    const out = translateToDialect(h.input);
+    const card = el('div', {className: h.starred ? 'hist-card starred' : 'hist-card'});
+
+    const star = el('span', {className:'hist-star'}, h.starred ? '⭐' : '☆');
+    star.addEventListener('click', e => {
+      e.stopPropagation();
+      HISTORY[i].starred = !HISTORY[i].starred;
+      star.textContent = HISTORY[i].starred ? '⭐' : '☆';
+      card.className = HISTORY[i].starred ? 'hist-card starred' : 'hist-card';
+    });
+
+    card.appendChild(star);
+    card.appendChild(el('div', {className:'hist-input'}, h.input));
+    card.appendChild(el('div', {className:'hist-arrow'}, '↓'));
+    card.appendChild(el('div', {className:'hist-output'}, out));
+    card.appendChild(el('div', {className:'hist-date'}, h.ts + ' · tap to copy'));
+    card.addEventListener('click', () => navigator.clipboard.writeText(out).catch(() => {}));
+    list.appendChild(card);
+  });
+  list.appendChild(el('div', {className:'hist-clear'}, 'Clear history'));
+}
+
+// ── Screen 5 — Phrases ────────────────────────────────────────────────────
+
+const PHRASE_PACKS = [
+  { category:'Greetings', phrases:['Hello, how are you?','Good morning!','See you later.','Nice to meet you.','Take care!','What is up?'] },
+  { category:'Food & Drink', phrases:['I am hungry.','That tastes amazing.','Can I get some water?','What is for dinner?','This is delicious.','I need coffee.'] },
+  { category:'Emotions', phrases:['I love this.','I am so happy right now.','That made me laugh.','I cannot believe it.','You are the best.','This is incredible.'] },
+  { category:'Everyday', phrases:['What time is it?','Let us go!','Not bad at all.','I had a long day.','That is a great idea.','Can you help me?'] },
+];
+
+function buildPhrases(filter) {
+  const q = (filter || '').toLowerCase().trim();
+  const container = document.getElementById('phrases-list');
+  container.textContent = '';
+  PHRASE_PACKS.forEach(pack => {
+    const items = pack.phrases
+      .map(p => ({ orig: p, yiss: translateToDialect(p) }))
+      .filter(it => !q || it.orig.toLowerCase().includes(q) || it.yiss.toLowerCase().includes(q));
+    if (!items.length) return;
+    container.appendChild(el('div', {className:'phrase-section-title'}, pack.category));
+    items.forEach(it => {
+      const card = el('div', {className:'phrase-card'});
+      const body = el('div', {className:'phrase-body'},
+        el('div', {className:'phrase-orig'}, it.orig),
+        el('div', {className:'phrase-arrow-sm'}, '↓'),
+        el('div', {className:'phrase-yiss'}, it.yiss)
+      );
+      const copyBtn = el('div', {className:'phrase-copy'}, 'Copy');
+      copyBtn.addEventListener('click', () => navigator.clipboard.writeText(it.yiss).catch(() => {}));
+      card.appendChild(body);
+      card.appendChild(copyBtn);
+      container.appendChild(card);
+    });
+  });
+}
+
+function filterPhrases(val) { buildPhrases(val); }
+
+// ── Init ──────────────────────────────────────────────────────────────────
+
+window.addEventListener('DOMContentLoaded', () => {
+  s1translate();
+  s2translate();
+  buildHistory();
+  buildPhrases();
+});
+</script>
+</body>
+</html>

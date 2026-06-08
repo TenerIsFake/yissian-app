@@ -66,7 +66,7 @@ Small — in-memory filter with useMemo, no new deps.
 
 ---
 
-### [ ] Pending — Web URL Translator (Phase 2 — CF Worker)
+### [x] Implemented (2026-05-07) — Web URL Translator (CF Pages Function)
 
 **One-line summary:** A Cloudflare Worker proxies arbitrary URLs, strips navigation/scripts, and returns plain HTML blocks for the browser to translate client-side.
 
