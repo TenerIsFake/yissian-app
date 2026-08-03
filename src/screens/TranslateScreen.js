@@ -10,7 +10,7 @@ import { useHistory } from '../hooks/useHistory';
 import BannerAd from '../components/BannerAd';
 
 const OVERRIDES_URL =
-  'https://raw.githubusercontent.com/TenerIsFake/homepage-claude/master/yissian.json';
+  'https://raw.githubusercontent.com/TenerIsFake/yissian-app/main/ota/yissian.json';
 const OVERRIDES_CACHE_KEY = 'yissian_overrides_cache';
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
