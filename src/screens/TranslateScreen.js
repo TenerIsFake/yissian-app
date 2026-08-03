@@ -62,14 +62,16 @@ function translateWithIntensity(text, intensity) {
 
 function WordChips({ inputText, outputText }) {
   const [active, setActive] = useState(null);
-  const inputWords = inputText.split(' ');
-  const outputWords = outputText.split(' ');
+  const inputWords = inputText.trim().split(/\s+/);
+  const outputWords = outputText.trim().split(/\s+/);
+  // Tooltips only make sense when words line up one-to-one.
+  const aligned = inputWords.length === outputWords.length;
 
   return (
     <View style={styles.chips}>
       {outputWords.map((word, i) => {
         const isActive = active === i;
-        const original = inputWords[i];
+        const original = aligned ? inputWords[i] : null;
         const changed = original && original.toLowerCase() !== word.toLowerCase();
         return (
           <TouchableOpacity

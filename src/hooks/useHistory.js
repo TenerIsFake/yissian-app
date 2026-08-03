@@ -9,8 +9,19 @@ export function useHistory() {
 
   useEffect(() => {
     AsyncStorage.getItem(KEY).then(raw => {
-      if (raw) setHistory(JSON.parse(raw));
-    });
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          setHistory(parsed);
+        } else {
+          AsyncStorage.removeItem(KEY).catch(() => {});
+        }
+      } catch {
+        // Corrupt storage — reset rather than breaking History forever.
+        AsyncStorage.removeItem(KEY).catch(() => {});
+      }
+    }).catch(() => {});
   }, []);
 
   const save = (next) => AsyncStorage.setItem(KEY, JSON.stringify(next));
