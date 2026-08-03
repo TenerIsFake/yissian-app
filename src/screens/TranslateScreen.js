@@ -7,7 +7,9 @@ import * as Clipboard from 'expo-clipboard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { translateToDialect, mergeOverrides } from 'yissian-engine';
 import { useHistory } from '../hooks/useHistory';
+import { usePro } from '../hooks/usePro';
 import BannerAd from '../components/BannerAd';
+import ProModal from '../components/ProModal';
 
 const OVERRIDES_URL =
   'https://raw.githubusercontent.com/TenerIsFake/yissian-app/main/ota/yissian.json';
@@ -95,6 +97,8 @@ export default function TranslateScreen() {
   const [intensity, setIntensity] = useState(100);
   const [tooltipMode, setTooltipMode] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [proVisible, setProVisible] = useState(false);
+  const isPro = usePro();
   const { addEntry } = useHistory();
   const saveTimer = useRef(null);
 
@@ -208,8 +212,15 @@ export default function TranslateScreen() {
             <Text style={styles.btnText}>Clear</Text>
           </TouchableOpacity>
         </View>
+
+        {!isPro && (
+          <TouchableOpacity style={styles.proRow} onPress={() => setProVisible(true)}>
+            <Text style={styles.proRowText}>✨ Remove ads — $1.99</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
       <BannerAd />
+      <ProModal visible={proVisible} onClose={() => setProVisible(false)} />
     </View>
   );
 }
@@ -278,4 +289,10 @@ const styles = StyleSheet.create({
   },
   btnMuted: { backgroundColor: '#2d2d44' },
   btnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  // Pro upsell
+  proRow: {
+    marginTop: 16, alignItems: 'center', paddingVertical: 10,
+    borderRadius: 8, borderWidth: 1, borderColor: '#3d2d64',
+  },
+  proRowText: { color: '#a78bfa', fontSize: 13, fontWeight: '600' },
 });
