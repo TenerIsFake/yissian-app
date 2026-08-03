@@ -97,12 +97,37 @@ android {
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
+    // SECURITY NOTE: the previous upload keystore password was committed to this
+    // (public) repository, so that keystore must be considered compromised.
+    // Generate a brand-new upload keystore before the first Play upload and enroll
+    // in Play App Signing. Signing credentials are now read from the environment or
+    // from an UNTRACKED gradle.properties (e.g. ~/.gradle/gradle.properties).
+    // Never commit passwords to this file.
+    def yissianKeystorePath = System.getenv("YISSIAN_KEYSTORE_PATH") ?: findProperty("YISSIAN_KEYSTORE_PATH") ?: '/home/tener/keystores/yissian-upload.jks'
+    def yissianKeyAlias = System.getenv("YISSIAN_KEY_ALIAS") ?: findProperty("YISSIAN_KEY_ALIAS") ?: 'yissian-upload'
+    def yissianStorePassword = System.getenv("YISSIAN_STORE_PASSWORD") ?: findProperty("YISSIAN_STORE_PASSWORD")
+    def yissianKeyPassword = System.getenv("YISSIAN_KEY_PASSWORD") ?: findProperty("YISSIAN_KEY_PASSWORD") ?: yissianStorePassword
+
+    // Fail fast with a clear message if a release build is requested without credentials.
+    gradle.taskGraph.whenReady { graph ->
+        def wantsRelease = graph.allTasks.any { task ->
+            task.project == project && task.name.toLowerCase().contains('release')
+        }
+        if (wantsRelease && !yissianStorePassword) {
+            throw new GradleException(
+                "Release signing credentials are missing. Set YISSIAN_STORE_PASSWORD (and optionally " +
+                "YISSIAN_KEY_PASSWORD, YISSIAN_KEYSTORE_PATH, YISSIAN_KEY_ALIAS) as environment variables " +
+                "or in an untracked gradle.properties (e.g. ~/.gradle/gradle.properties)."
+            )
+        }
+    }
+
     signingConfigs {
         release {
-            storeFile file('/home/tener/keystores/yissian-upload.jks')
-            storePassword 'TendridApps2026'
-            keyAlias 'yissian-upload'
-            keyPassword 'TendridApps2026'
+            storeFile file(yissianKeystorePath)
+            storePassword yissianStorePassword
+            keyAlias yissianKeyAlias
+            keyPassword yissianKeyPassword
         }
                 debug {
             storeFile file('debug.keystore')
