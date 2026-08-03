@@ -37,10 +37,20 @@ function extractBlocks(html) {
   for (const m of cleaned.matchAll(pattern)) {
     const text = innerText(m[2]);
     if (text.length > 1) blocks.push({ type: m[1].toLowerCase(), text });
+    if (blocks.length >= MAX_BLOCKS) break;
   }
 
   return blocks;
 }
+
+// ── Safety limits ──────────────────────────────────────────────────────────
+
+const FETCH_TIMEOUT_MS = 15000;      // abort hung servers after 15s
+const MAX_HTML_CHARS = 2_000_000;    // ~2MB — cap what we parse
+const MAX_BLOCKS = 300;              // cap rendered blocks on huge pages
+const TRANSLATE_BATCH = 40;          // translate in batches, yielding between
+
+const yieldToUI = () => new Promise(resolve => setTimeout(resolve, 0));
 
 // ── Block rendering ────────────────────────────────────────────────────────
 
@@ -74,9 +84,19 @@ export default function WebTranslateScreen() {
   const [dynamicSite, setDynamicSite] = useState(false);
   const scrollRef = useRef(null);
 
+  const requestIdRef = useRef(0);
+
   const handleFetch = async () => {
-    const target = url.trim().startsWith('http') ? url.trim() : `https://${url.trim()}`;
-    if (!target) return;
+    const raw = url.trim();
+    if (!raw) return;
+
+    // Cleartext HTTP is disabled in release builds — always fetch over HTTPS.
+    let target = raw;
+    if (/^http:\/\//i.test(target)) target = `https://${target.slice(7)}`;
+    else if (!/^https:\/\//i.test(target)) target = `https://${target}`;
+
+    const requestId = ++requestIdRef.current;
+    const isStale = () => requestId !== requestIdRef.current;
 
     setLoading(true);
     setBlocks(null);
@@ -84,8 +104,12 @@ export default function WebTranslateScreen() {
     setDynamicSite(false);
     scrollRef.current?.scrollTo({ y: 0, animated: false });
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
     try {
       const res = await fetch(target, {
+        signal: controller.signal,
         headers: {
           'User-Agent':
             'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
@@ -96,19 +120,38 @@ export default function WebTranslateScreen() {
 
       if (!res.ok) throw new Error(`Server returned ${res.status} ${res.statusText}`);
 
-      const html = await res.text();
+      let html = await res.text();
+      if (html.length > MAX_HTML_CHARS) html = html.slice(0, MAX_HTML_CHARS);
+
       const extracted = extractBlocks(html);
+      if (isStale()) return;
 
       if (extracted.length === 0) {
         setDynamicSite(true);
         return;
       }
 
-      setBlocks(extracted.map(b => ({ ...b, translated: translateToDialect(b.text) })));
+      // Translate in batches, yielding to the UI thread between each batch so
+      // large articles don't freeze the app.
+      const translated = [];
+      for (let i = 0; i < extracted.length; i += TRANSLATE_BATCH) {
+        for (const b of extracted.slice(i, i + TRANSLATE_BATCH)) {
+          translated.push({ ...b, translated: translateToDialect(b.text) });
+        }
+        if (i + TRANSLATE_BATCH < extracted.length) await yieldToUI();
+        if (isStale()) return;
+      }
+
+      setBlocks(translated);
     } catch (err) {
-      setError({ message: err.message, url: target });
+      if (isStale()) return;
+      const message = err?.name === 'AbortError'
+        ? `Request timed out after ${FETCH_TIMEOUT_MS / 1000} seconds`
+        : err.message;
+      setError({ message, url: target });
     } finally {
-      setLoading(false);
+      clearTimeout(timeout);
+      if (!isStale()) setLoading(false);
     }
   };
 
