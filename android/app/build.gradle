@@ -113,7 +113,11 @@ android {
         def wantsRelease = graph.allTasks.any { task ->
             task.project == project && task.name.toLowerCase().contains('release')
         }
-        if (wantsRelease && !yissianStorePassword) {
+        // On EAS Build workers the credentials are injected by EAS itself
+        // (remote "Build Credentials" keystore) after this file is evaluated,
+        // so local env credentials are legitimately absent there.
+        def isEasBuild = System.getenv("EAS_BUILD") == "true"
+        if (wantsRelease && !yissianStorePassword && !isEasBuild) {
             throw new GradleException(
                 "Release signing credentials are missing. Set YISSIAN_STORE_PASSWORD (and optionally " +
                 "YISSIAN_KEY_PASSWORD, YISSIAN_KEYSTORE_PATH, YISSIAN_KEY_ALIAS) as environment variables " +
