@@ -28,7 +28,7 @@ const RULES = [
     suffix: "-issin'",
     when: 'Gerunds',
     detail: 'Words ending -ing or -in\'',
-    examples: [['fucking', "fissin'"], ['downloading', "dissin'"]],
+    examples: [['running', "rissin'"], ['downloading', "dissin'"]],
   },
   {
     suffix: 'base + -ly',

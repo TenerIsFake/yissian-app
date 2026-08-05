@@ -47,7 +47,7 @@
     "plugins": [
       ["expo-build-properties", {
         "android": {
-          "minSdkVersion": 23
+          "minSdkVersion": 24
         }
       }],
       "react-native-google-mobile-ads"

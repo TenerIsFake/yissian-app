@@ -65,19 +65,11 @@
     padding: 4px 10px; border-radius: 12px;
     border: 1px solid #4c3480; letter-spacing: 1px;
   }
-  .dialect-row { display: flex; gap: 6px; margin-top: 8px; }
-  .dialect-chip {
-    background: #1a1a2e; border: 1px solid #2d2d44;
-    border-radius: 14px; padding: 5px 12px;
-    color: #64748b; font-size: 11px; font-weight: 600;
+  .pro-row {
+    margin-top: 14px; padding: 9px 0; text-align: center;
+    border: 1px solid #3d2d64; border-radius: 8px;
+    color: #a78bfa; font-size: 12px; font-weight: 600;
     cursor: pointer; user-select: none;
-  }
-  .dialect-chip.active { background: #3b1f6e; border-color: #7c3aed; color: #c4b5fd; }
-  .pro-chip {
-    background: linear-gradient(135deg, #7c3aed, #5b21b6);
-    color: #fff; font-size: 9px; font-weight: 700;
-    padding: 2px 6px; border-radius: 8px; letter-spacing: 0.5px;
-    vertical-align: middle; margin-left: 4px;
   }
   .tab-bar {
     height: 82px; background: #0d0d18;
@@ -225,11 +217,6 @@
         <span class="app-title">Yissian</span>
         <span class="dialect-badge">DIALECT</span>
       </div>
-      <div class="dialect-row">
-        <span class="dialect-chip active">Yissian</span>
-        <span class="dialect-chip">Pig Latin</span>
-        <span class="dialect-chip">Pootie Tang <span class="pro-chip">PRO</span></span>
-      </div>
     </div>
     <div class="scroll-body">
       <div class="section-label">Input</div>
@@ -254,6 +241,8 @@
         <button class="btn" onclick="">Share</button>
         <button class="btn muted" onclick="s1clear()">Clear</button>
       </div>
+      <!-- Matches the real in-app Pro upsell (one-time remove-ads purchase) -->
+      <div class="pro-row">✨ Remove ads — $1.99</div>
     </div>
   </div>
   <div class="tab-bar">
@@ -280,11 +269,6 @@
       <div class="app-header-row">
         <span class="app-title">Yissian</span>
         <span class="dialect-badge">DIALECT</span>
-      </div>
-      <div class="dialect-row">
-        <span class="dialect-chip active">Yissian</span>
-        <span class="dialect-chip">Pig Latin</span>
-        <span class="dialect-chip">Pootie Tang <span class="pro-chip">PRO</span></span>
       </div>
     </div>
     <div class="scroll-body">

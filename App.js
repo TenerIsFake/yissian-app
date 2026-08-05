@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text } from 'react-native';
 import { initIAP } from './src/engine/iap';
+import { initAds } from './src/engine/ads';
 
 import TranslateScreen from './src/screens/TranslateScreen';
 import HistoryScreen from './src/screens/HistoryScreen';
@@ -16,7 +17,11 @@ const Tab = createBottomTabNavigator();
 const ICONS = { Translate: '🗣', History: '📜', Phrases: '💬', Web: '🌐', Rules: '📖' };
 
 export default function App() {
-  useEffect(() => { initIAP(); }, []);
+  useEffect(() => {
+    initIAP();
+    // UMP consent flow + Mobile Ads SDK init; banners await this promise.
+    initAds();
+  }, []);
 
   return (
     <NavigationContainer>
