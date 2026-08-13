@@ -50,6 +50,15 @@ const MAX_HTML_CHARS = 2_000_000;    // ~2MB — cap what we parse
 const MAX_BLOCKS = 300;              // cap rendered blocks on huge pages
 const TRANSLATE_BATCH = 40;          // translate in batches, yielding between
 
+// Mobile UA so sites serve their phone layout. Matching the real platform keeps
+// iOS from being served Android-specific pages/redirects; the Android string is
+// unchanged from the shipping build.
+const USER_AGENT = Platform.select({
+  ios: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1',
+  default:
+    'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+});
+
 const yieldToUI = () => new Promise(resolve => setTimeout(resolve, 0));
 
 // ── Block rendering ────────────────────────────────────────────────────────
@@ -111,8 +120,7 @@ export default function WebTranslateScreen() {
       const res = await fetch(target, {
         signal: controller.signal,
         headers: {
-          'User-Agent':
-            'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+          'User-Agent': USER_AGENT,
           'Accept': 'text/html,application/xhtml+xml',
           'Accept-Language': 'en-US,en;q=0.9',
         },

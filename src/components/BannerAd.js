@@ -1,24 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 import { initAds } from '../engine/ads';
 import { usePro } from '../hooks/usePro';
+import { ADMOB_BANNER_UNIT_ID, adsSupported } from '../config/monetization';
 
-const REAL_BANNER_ID = 'ca-app-pub-9760203099492988/9979822598';
-const BANNER_ID = __DEV__ ? TestIds.BANNER : REAL_BANNER_ID;
+// Dev builds use Google's test unit; release uses the real per-platform unit
+// from src/config/monetization.js. When a platform has no unit configured yet,
+// `adsSupported` is false and this component renders nothing at all.
+const BANNER_ID = __DEV__ ? TestIds.BANNER : ADMOB_BANNER_UNIT_ID;
 
 export default function BannerAdBar() {
   const isPro = usePro();
   const [adsReady, setAdsReady] = useState(false);
 
   useEffect(() => {
+    if (!adsSupported) return undefined;
     let mounted = true;
     // Waits for the UMP consent flow + MobileAds SDK init before any request.
     initAds().then(ok => { if (mounted) setAdsReady(ok === true); });
     return () => { mounted = false; };
   }, []);
 
-  if (Platform.OS !== 'android' || isPro || !adsReady) return null;
+  if (!adsSupported || isPro || !adsReady) return null;
 
   return (
     <View style={styles.container}>

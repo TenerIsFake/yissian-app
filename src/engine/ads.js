@@ -1,5 +1,5 @@
-import { Platform } from 'react-native';
 import mobileAds, { AdsConsent } from 'react-native-google-mobile-ads';
+import { adsSupported } from '../config/monetization';
 
 // Google requires a certified CMP (UMP) consent flow for EEA/UK users before
 // any ads are requested. This module runs that flow once, then initializes the
@@ -10,7 +10,9 @@ let initPromise = null;
 export function initAds() {
   if (!initPromise) {
     initPromise = (async () => {
-      if (Platform.OS !== 'android') return false;
+      // No ad unit is configured for this platform, so there is nothing to
+      // request — never touch the native Ads SDK in that case.
+      if (!adsSupported) return false;
 
       try {
         // Shows the Google-certified UMP consent form when required (EEA/UK).

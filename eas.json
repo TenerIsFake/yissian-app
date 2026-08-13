@@ -6,6 +6,9 @@
     "preview": {
       "android": {
         "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true
       }
     },
     "production": {
@@ -13,7 +16,9 @@
         "buildType": "app-bundle"
       },
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "distribution": "store",
+        "credentialsSource": "remote"
       }
     }
   },
@@ -23,6 +28,10 @@
         "serviceAccountKeyPath": "/home/tener/.secrets/play-service-account.json",
         "track": "internal",
         "releaseStatus": "completed"
+      },
+      "ios": {
+        "bundleIdentifier": "com.tenerisfake.yissian",
+        "language": "en-US"
       }
     }
   }

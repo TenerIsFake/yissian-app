@@ -10,6 +10,7 @@ import { useHistory } from '../hooks/useHistory';
 import { usePro } from '../hooks/usePro';
 import BannerAd from '../components/BannerAd';
 import ProModal from '../components/ProModal';
+import { iapSupported } from '../config/monetization';
 
 const OVERRIDES_URL =
   'https://raw.githubusercontent.com/TenerIsFake/yissian-app/main/ota/yissian.json';
@@ -215,7 +216,9 @@ export default function TranslateScreen() {
           </TouchableOpacity>
         </View>
 
-        {!isPro && (
+        {/* Only offer the upsell where purchases actually work — see
+            src/config/monetization.js. */}
+        {!isPro && iapSupported && (
           <TouchableOpacity style={styles.proRow} onPress={() => setProVisible(true)}>
             <Text style={styles.proRowText}>✨ Remove ads — $1.99</Text>
           </TouchableOpacity>

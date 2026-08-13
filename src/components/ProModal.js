@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { purchasePro, restorePurchases, getProPackage } from '../engine/iap';
 import { usePro } from '../hooks/usePro';
+import { iapSupported, adsSupported } from '../config/monetization';
 
 const FALLBACK_PRICE = '$1.99';
 
@@ -13,7 +14,7 @@ export default function ProModal({ visible, onClose }) {
   const [price, setPrice] = useState(FALLBACK_PRICE);
 
   useEffect(() => {
-    if (!visible) return;
+    if (!visible || !iapSupported) return;
     let mounted = true;
     getProPackage()
       .then(pkg => {
@@ -65,15 +66,24 @@ export default function ProModal({ visible, onClose }) {
           <Text style={styles.title}>✨ Yissian Pro</Text>
           {isPro ? (
             <Text style={styles.body}>You're already Pro — enjoy the ad-free experience!</Text>
-          ) : (
+          ) : iapSupported ? (
             <Text style={styles.body}>
               One-time purchase. Removes all banner ads, forever.
+            </Text>
+          ) : (
+            // No RevenueCat key for this platform yet, so there is no purchase
+            // to offer. Ads are off in the same build, so say so plainly rather
+            // than showing a button that cannot work.
+            <Text style={styles.body}>
+              {adsSupported
+                ? 'Pro isn’t available on this device yet. Please check back after the next update.'
+                : 'This version doesn’t show any ads, so there’s nothing to remove. Pro will arrive in a future update.'}
             </Text>
           )}
 
           {busy && <ActivityIndicator color="#a78bfa" style={styles.spinner} />}
 
-          {!isPro && (
+          {!isPro && iapSupported && (
             <TouchableOpacity
               style={[styles.buyBtn, busy && styles.btnDisabled]}
               onPress={handlePurchase}
@@ -83,7 +93,7 @@ export default function ProModal({ visible, onClose }) {
             </TouchableOpacity>
           )}
 
-          {!isPro && (
+          {!isPro && iapSupported && (
             <TouchableOpacity
               style={[styles.restoreBtn, busy && styles.btnDisabled]}
               onPress={handleRestore}
@@ -94,7 +104,7 @@ export default function ProModal({ visible, onClose }) {
           )}
 
           <TouchableOpacity style={styles.closeBtn} onPress={onClose} disabled={busy}>
-            <Text style={styles.closeText}>{isPro ? 'Close' : 'Not now'}</Text>
+            <Text style={styles.closeText}>{isPro || !iapSupported ? 'Close' : 'Not now'}</Text>
           </TouchableOpacity>
         </View>
       </View>
