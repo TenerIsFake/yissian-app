@@ -1,5 +1,9 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Platform, Linking, TouchableOpacity } from 'react-native';
+
+// Must match extra.privacyPolicyUrl in app.json (no expo-constants dependency).
+const SUPPORT_EMAIL = 'tenerjenkins@gmail.com';
+const PRIVACY_POLICY_URL = 'https://tenerisfake.github.io/privacy.html';
 
 const RULES = [
   {
@@ -88,6 +92,21 @@ export default function RulesScreen() {
       <Text style={styles.footer}>
         Override table: ~45 hand-tuned words (steak, night, can't, it's, etc.) fetched from yissian.json.
       </Text>
+
+      <View style={styles.card}>
+        <Text style={styles.suffix}>Support & Privacy</Text>
+        <Text style={styles.detail}>
+          Questions, bug reports, or feedback? Get in touch. Translation happens entirely on
+          your device — text you translate never leaves it. (The Web tab fetches the page at
+          the address you enter, like any browser.)
+        </Text>
+        <TouchableOpacity onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`).catch(() => {})}>
+          <Text style={styles.link}>✉️  {SUPPORT_EMAIL}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => Linking.openURL(PRIVACY_POLICY_URL).catch(() => {})}>
+          <Text style={styles.link}>🔒  Privacy Policy</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
@@ -116,5 +135,6 @@ const styles = StyleSheet.create({
   exIn: { color: '#94a3b8' },
   arrow: { color: '#4b5563' },
   exOut: { color: '#c4b5fd', fontWeight: '600' },
-  footer: { color: '#374151', fontSize: 12, lineHeight: 18, marginTop: 4, marginBottom: 20 },
+  footer: { color: '#374151', fontSize: 12, lineHeight: 18, marginTop: 4 },
+  link: { color: '#a78bfa', fontSize: 14, fontWeight: '600', paddingVertical: 6 },
 });
