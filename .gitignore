@@ -38,3 +38,17 @@ yarn-error.*
 
 # generated native folders
 /ios
+
+# Claude Code — THIS REPO IS PUBLIC.
+# Local agent instructions and memory must never be committed here: they carry
+# machine details, host addresses, absolute paths and credential locations.
+# Project-scoped memory for this repo belongs in CLAUDE.local.md, which is
+# ignored below and stays on the machine.
+#
+# Note: .claude/skills/yis/SKILL.md predates this rule and remains tracked --
+# gitignore does not untrack existing files. It was audited 2026-08-17 and
+# contains no machine details, addresses, paths or credentials. Leave it or
+# remove it deliberately; do not add more.
+CLAUDE.md
+CLAUDE.local.md
+.claude/
