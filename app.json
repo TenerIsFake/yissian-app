@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tenerisfake.yissian",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
@@ -65,6 +65,9 @@
       ["expo-build-properties", {
         "android": {
           "minSdkVersion": 24
+        },
+        "ios": {
+          "deploymentTarget": "15.1"
         }
       }],
       ["react-native-google-mobile-ads", {
