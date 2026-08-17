@@ -16,7 +16,7 @@
       "backgroundColor": "#0f0f14"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.tenerisfake.yissian",
       "buildNumber": "2",
       "infoPlist": {
