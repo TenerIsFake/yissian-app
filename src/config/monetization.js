@@ -25,11 +25,18 @@ const RC_API_KEY_IOS = '';
 // ── AdMob banner ad unit IDs ───────────────────────────────────────────────
 const ADMOB_BANNER_ANDROID = 'ca-app-pub-9760203099492988/9979822598';
 
-// TODO(ios): paste the **iOS** AdMob banner ad unit ID here, from AdMob → Apps
-// → (the iOS app) → Ad units. Format is `ca-app-pub-<publisher>/<unit>`, and the
-// unit is app-specific — the Android unit above will not serve on iOS. Note the
-// iOS app also needs its GADApplicationIdentifier set in app.json before ads can
-// initialize. Leave this empty string until the real unit ID exists.
+// The iOS AdMob app now exists and app.json carries its real app id
+// (…~3907007256), replacing Google's sample identifier. Its banner unit is:
+//
+//     ca-app-pub-9760203099492988/8140931585
+//
+// It is deliberately NOT pasted in yet. Filling this string flips `adsSupported`
+// to true and turns ads ON for iOS, which is a product decision, not a config
+// one: it pulls App Tracking Transparency, an advertising entry in the privacy
+// nutrition labels, and the UMP consent flow into the first App Store review.
+// Shipping the first submission ad-free keeps that surface out of review
+// entirely. Paste the unit above when ads on iOS are wanted — no other code
+// change is needed.
 const ADMOB_BANNER_IOS = '';
 
 /** Pick the value for the running platform; anything else (web) gets nothing. */
