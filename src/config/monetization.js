@@ -25,19 +25,18 @@ const RC_API_KEY_IOS = '';
 // ── AdMob banner ad unit IDs ───────────────────────────────────────────────
 const ADMOB_BANNER_ANDROID = 'ca-app-pub-9760203099492988/9979822598';
 
-// The iOS AdMob app now exists and app.json carries its real app id
-// (…~3907007256), replacing Google's sample identifier. Its banner unit is:
+// iOS ads ENABLED 2026-08-19 by Tener's decision. Yissian has no subscription —
+// ads plus the $1.99 ad-removal IAP are the entire revenue model, so shipping
+// ad-free would have meant shipping with no way to earn anything. (That is the
+// opposite of RxDecay, where dropping AdMob traded ~$0.09/MAU/month for cleaner
+// positioning next to a ~$25-30/yr subscription. The economics do not transfer.)
 //
-//     ca-app-pub-9760203099492988/8140931585
-//
-// It is deliberately NOT pasted in yet. Filling this string flips `adsSupported`
-// to true and turns ads ON for iOS, which is a product decision, not a config
-// one: it pulls App Tracking Transparency, an advertising entry in the privacy
-// nutrition labels, and the UMP consent flow into the first App Store review.
-// Shipping the first submission ad-free keeps that surface out of review
-// entirely. Paste the unit above when ads on iOS are wanted — no other code
-// change is needed.
-const ADMOB_BANNER_IOS = '';
+// App Tracking Transparency is NOT triggered: BannerAd.js requests
+// `requestNonPersonalizedAdsOnly: true`, app.json declares
+// NSPrivacyTracking: false with no NSUserTrackingUsageDescription, and nothing
+// in src/ calls a tracking API. Lower eCPM, no ATT prompt, and the privacy
+// nutrition labels declare advertising data NOT linked to identity.
+const ADMOB_BANNER_IOS = 'ca-app-pub-9760203099492988/8140931585';
 
 /** Pick the value for the running platform; anything else (web) gets nothing. */
 function forPlatform(androidValue, iosValue) {
