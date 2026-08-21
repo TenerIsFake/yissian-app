@@ -31,6 +31,7 @@
       },
       "ios": {
         "bundleIdentifier": "com.tenerisfake.yissian",
+        "ascAppId": "6802833175",
         "language": "en-US"
       }
     }
