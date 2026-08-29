@@ -5,7 +5,11 @@ import { View, Text, ScrollView, StyleSheet, Platform, Linking, TouchableOpacity
 const SUPPORT_EMAIL = 'tenerjenkins@gmail.com';
 const PRIVACY_POLICY_URL = 'https://tenerisfake.github.io/privacy.html';
 
-const RULES = [
+// Exported so __tests__/rules-examples.test.js can assert every example against
+// the engine. The screen previously listed ['go', 'griss']; the engine leaves
+// two-letter words alone (go/so/no/do all pass through), so the app was printing
+// a rule example it does not produce. Replaced with 'grow', which is verified.
+export const RULES = [
   {
     suffix: '-iss',
     when: 'Short/front vowels',
@@ -16,7 +20,7 @@ const RULES = [
     suffix: '-riss',
     when: 'Back/round vowels',
     detail: 'o, ou, ow, ue, ui, ew, au, aw, oi, oy — r-glide suppressed if onset ends in r',
-    examples: [['go', 'griss'], ['boy', 'briss'], ['dark', 'driss']],
+    examples: [['grow', 'griss'], ['boy', 'briss'], ['dark', 'driss']],
   },
   {
     suffix: '-rid',
