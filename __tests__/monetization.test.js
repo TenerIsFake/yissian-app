@@ -41,17 +41,24 @@ describe('iOS', () => {
     expect(m.ADMOB_BANNER_UNIT_ID).toMatch(/^ca-app-pub-\d+\/\d+$/);
   });
 
-  it('does NOT support purchases while the RevenueCat iOS key is unset', () => {
+  it('supports purchases (key set 2026-08-31)', () => {
+    // Was the inverse until 2026-08-31: iOS shipped ads with no removal path.
+    // Flipping this is only safe because the product exists on BOTH sides — ASC
+    // `yissian_pro_lifetime` and the RevenueCat `$rc_lifetime` package. A key
+    // without a reachable product is a Guideline 2.1 non-functional purchase.
     const m = loadFor('ios');
-    expect(m.REVENUECAT_API_KEY).toBe('');
-    expect(m.iapSupported).toBe(false);
+    expect(m.iapSupported).toBe(true);
+    expect(m.REVENUECAT_API_KEY).toMatch(/^appl_/);
   });
 
   it('never carries the Android key on iOS', () => {
     // RevenueCat rejects a goog_ key on an App Store app; this is the specific
     // wrong-fix that would look like it "enables" purchases and silently break them.
+    // Now that iapSupported is true, this matters MORE, not less: the row is
+    // visible, so a wrong key turns a hidden no-op into a visible broken button.
     const m = loadFor('ios');
     expect(m.REVENUECAT_API_KEY.startsWith('goog_')).toBe(false);
+    expect(m.REVENUECAT_API_KEY).not.toBe(loadFor('android').REVENUECAT_API_KEY);
   });
 });
 

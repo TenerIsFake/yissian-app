@@ -16,11 +16,17 @@ import { Platform } from 'react-native';
 // server-side by RevenueCat against Play Billing / StoreKit.
 const RC_API_KEY_ANDROID = 'goog_ehuZqFGtiLuwYRLReYQFPttwjel';
 
-// TODO(ios): paste the RevenueCat **iOS** public SDK key here. It begins with
-// `appl_` and lives in RevenueCat → Project settings → API keys → the App Store
-// app. Do NOT reuse the Android `goog_` key — RevenueCat rejects it and the
-// purchase flow breaks. Leave this empty string until the real key exists.
-const RC_API_KEY_IOS = '';
+// iOS public SDK key, set 2026-08-31. Public by design — RevenueCat validates
+// purchases server-side against StoreKit, so this ships in the binary exactly as
+// the Android `goog_` key above does.
+//
+// Setting this flips `iapSupported` to true, which surfaces the "Remove ads" row.
+// That is only safe because the product now exists on BOTH sides: ASC
+// `yissian_pro_lifetime` (Apple ID 6807145646) and RevenueCat product
+// `prod63621603d8`, attached to entitlement `pro` and carried in the `default`
+// offering's `$rc_lifetime` package alongside the Android product. A key without
+// a reachable product is a Guideline 2.1 non-functional purchase — see ADR-053.
+const RC_API_KEY_IOS = 'appl_HMOcmGRGuHNBTCLxHredeOdblRp';
 
 // ── AdMob banner ad unit IDs ───────────────────────────────────────────────
 const ADMOB_BANNER_ANDROID = 'ca-app-pub-9760203099492988/9979822598';
