@@ -1,13 +1,19 @@
 /**
  * The monetization contract, pinned per platform.
  *
- * iOS currently ships ads but NOT purchases: the AdMob unit is configured while the
- * RevenueCat iOS key is still an empty string. That asymmetry is deliberate and
- * load-bearing — `adsSupported` and `iapSupported` are derived from whether each
- * credential is filled, so the app degrades quietly instead of calling
- * Purchases.configure() with no key or rendering a purchase button that cannot work.
+ * iOS ships BOTH ads and purchases as of `d5df55d` (2026-08-31), when the
+ * RevenueCat `appl_` key was filled in. Until then it shipped ads only, and this
+ * header still described that older world for three weeks after the code moved —
+ * asserting the opposite of the assertions directly below it. Corrected 2026-09-20.
+ * A comment that contradicts its own tests is the cheapest place for a false claim
+ * to hide; if you change the contract, change this paragraph in the same commit.
  *
- * The risk is that someone "tidies up" the empty string, or pastes the Android
+ * `adsSupported` and `iapSupported` are derived from whether each credential string
+ * is filled, so the app degrades quietly instead of calling Purchases.configure()
+ * with no key or rendering a purchase button that cannot work. An empty key is a
+ * deliberate off switch, not an oversight.
+ *
+ * The risk is that someone empties a key while "tidying", or pastes the Android
  * `goog_` key into the iOS slot (RevenueCat rejects it and the purchase flow
  * breaks). These tests make either change fail loudly here rather than in review.
  *
