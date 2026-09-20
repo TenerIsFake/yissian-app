@@ -132,6 +132,18 @@ def write_android(scale):
     if not ANDROID_RES.is_dir():
         print("no android/ folder — skipping launcher icons")
         return
+    # Every density directory must be present before anything is written. The
+    # splash loop used to skip a missing one silently, which is the failure
+    # this whole script exists to prevent: a run that reports success having
+    # quietly left one density on the old icon. Either all of it is
+    # regenerated or the run stops and says which directory is missing.
+    missing = [str(d.relative_to(ROOT)) for d in
+               [ANDROID_RES / f"mipmap-{k}" for k in LAUNCHER] +
+               [ANDROID_RES / f"drawable-{k}" for k in SPLASH_LOGO]
+               if not d.is_dir()]
+    if missing:
+        raise SystemExit("android resource directories missing: " + ", ".join(missing))
+
     opaque = mark_svg(background=True)
     foreground = mark_svg(background=False, scale=scale)
     splash = mark_svg(background=False, scale=scale * 0.82)
@@ -146,10 +158,9 @@ def write_android(scale):
             ANDROID_RES / f"mipmap-{density}/ic_launcher_foreground.webp", format="PNG")
         written += 3
     for density, px in SPLASH_LOGO.items():
-        target = ANDROID_RES / f"drawable-{density}/splashscreen_logo.png"
-        if target.parent.is_dir():
-            render(splash, px).save(target)
-            written += 1
+        render(splash, px).save(
+            ANDROID_RES / f"drawable-{density}/splashscreen_logo.png")
+        written += 1
     print(f"android: {written} launcher/splash files written")
 
 
