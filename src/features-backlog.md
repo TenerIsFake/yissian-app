@@ -114,7 +114,7 @@ Medium — Worker is ~50 lines; web component mirrors mobile implementation; cus
 **One-line summary:** SRV-2 exposes Android SDK health as a JSON endpoint; SRV-1 homepage shows a widget card.
 
 ### Acceptance Criteria
-- [ ] SRV-2 serves `GET http://10.0.0.155:3010/api/android-health` returning JSON with: java_version, sdk_path, disk_gb, last_build_at, last_build_status
+- [ ] The build machine serves `GET /api/android-health` returning JSON with: java_version, sdk_path, disk_gb, last_build_at, last_build_status
 - [ ] SRV-1 homepage dashboard shows an "Android Build" card in the SRV-2 section
 - [ ] Card displays: Java version, disk usage, last build timestamp + status
 - [ ] Card polls every 5 minutes (consistent with other service cards)
